@@ -40,6 +40,16 @@ services:
       server01:
         condition: service_healthy
 
+  radius-ui:
+    extends:
+      file: ./RADIUS_UI/docker-compose.yml
+      service: radius-ui
+    build:
+      context: ./RADIUS_UI
+      dockerfile: Dockerfile
+    depends_on:
+      - radius01
+
 networks:
   quantum-net:
     name: quantum-net

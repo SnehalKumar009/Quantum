@@ -1,0 +1,29 @@
+services:
+  radius-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantum-lab/radius-ui:latest
+    container_name: radius-ui
+    hostname: radius-ui
+    restart: unless-stopped
+    ports:
+      - "8081:8081/tcp"
+    environment:
+      RADIUS_HOST: radius01
+      RADIUS_AUTH_PORT: "1812"
+      RADIUS_SECRET: testing123
+      # Read-only mount path inside the container; see volumes below.
+      AUTHORIZE_FILE: /raddb/mods-config/files/authorize
+    volumes:
+      # Mount the authorize file from the RADIUS folder so the UI can list
+      # the configured accounts. Read-only.
+      - ../RADIUS/raddb/mods-config/files/authorize:/raddb/mods-config/files/authorize:ro
+    networks:
+      - quantum-net
+
+networks:
+  quantum-net:
+    name: quantum-net
+    external: true
+

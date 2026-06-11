@@ -1,0 +1,13 @@
+# Minimal RFC 2865 dictionary - same as the client/server modules.
+ATTRIBUTE    User-Name           1   string
+ATTRIBUTE    User-Password       2   string
+ATTRIBUTE    NAS-IP-Address      4   ipaddr
+ATTRIBUTE    NAS-Port            5   integer
+ATTRIBUTE    Service-Type        6   integer
+ATTRIBUTE    Reply-Message      18   string
+ATTRIBUTE    NAS-Identifier     32   string
+ATTRIBUTE    Message-Authenticator 80 octets
+
+VALUE   Service-Type    Login-User          1
+VALUE   Service-Type    Framed-User         2
+
