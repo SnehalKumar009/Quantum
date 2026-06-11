@@ -1,0 +1,16 @@
+# =============================================================================
+# keys - QConnect-issued key-id / key pairs.
+#
+# Same line format as `authorize`:
+#     <key-id>   Cleartext-Password := "<hex key>"
+#
+# Populated by /usr/local/bin/qconnect-fetch inside the radius01 container.
+# Example contents after running `docker exec radius01 qconnect-fetch`:
+#
+#   qkey-3f8a91b2c0de    Cleartext-Password := "0a1b2c3d4e5f...ef"
+#
+# Keep this file under version control intentionally EMPTY so each fresh
+# build starts with a clean slate; runtime additions live inside the
+# container.
+# =============================================================================
+

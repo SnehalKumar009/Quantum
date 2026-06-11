@@ -50,6 +50,14 @@ services:
     depends_on:
       - radius01
 
+  qconnect:
+    extends:
+      file: ./QConnect/docker-compose.yml
+      service: qconnect
+    build:
+      context: ./QConnect
+      dockerfile: Dockerfile
+
 networks:
   quantum-net:
     name: quantum-net
@@ -57,5 +65,6 @@ networks:
 
 volumes:
   server01-certs:
+  qconnect-data:
 
 

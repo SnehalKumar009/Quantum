@@ -1,0 +1,29 @@
+services:
+  qconnect:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantum-lab/qconnect:latest
+    container_name: qconnect
+    hostname: qconnect
+    restart: unless-stopped
+    ports:
+      - "9000:9000/tcp"
+    environment:
+      QCONNECT_DATA_DIR: /data/keys
+      KEY_BYTES: "32"          # 256-bit keys
+      LOG_LEVEL: INFO
+    volumes:
+      # Persist generated keys across container rebuilds.
+      - qconnect-data:/data/keys
+    networks:
+      - quantum-net
+
+volumes:
+  qconnect-data:
+
+networks:
+  quantum-net:
+    name: quantum-net
+    external: true
+

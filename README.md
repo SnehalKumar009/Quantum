@@ -52,6 +52,31 @@ When run individually, RADIUS must come up first because it owns the
 | `SERVER/`    | Python TLS srv   | `quantum-lab/server01:latest`  | tcp 8443 |
 | `CLIENT/`    | Python client    | `quantum-lab/client01:latest`  | – (one-shot) |
 | `RADIUS_UI/` | FastAPI web UI   | `quantum-lab/radius-ui:latest` | tcp 8081 |
+| `QConnect/`  | RNG / key store  | `quantum-lab/qconnect:latest`  | tcp 9000 |
+
+## QConnect (key distribution)
+
+QConnect is a small HTTP service that simulates the new RNG product.
+It generates `KeyId / Key` pairs, persists each one as a file inside the
+container, and serves them on demand:
+
+```bash
+# From your host:
+curl -s -X POST http://localhost:9000/keys/generate | jq
+
+# From inside any lab container (radius01, server01, client01):
+curl -s -X POST http://qconnect:9000/keys/generate
+```
+
+The RADIUS container has a helper script that fetches a key from QConnect
+and stores it in `/etc/raddb/mods-config/files/keys` using the **same
+line format as `authorize`** (so `qkey-…    Cleartext-Password := "…"`):
+
+```bash
+docker exec radius01 qconnect-fetch              # generate + store new key
+docker exec radius01 qconnect-fetch qkey-abc123  # fetch existing by ID + store
+docker exec radius01 cat /etc/raddb/mods-config/files/keys
+```
 
 ## Default credentials
 
