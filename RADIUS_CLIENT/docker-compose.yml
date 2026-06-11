@@ -16,10 +16,6 @@ services:
       RADIUS_SECRET: testing123
       NAS_IDENTIFIER: client-radiusclient-01
       NAS_SHARED_TOKEN: lab-nas-token
-      # Pause (seconds) between receiving /auth and forwarding to RADIUS.
-      # Lets you tamper with the key in QConnect for failure-mode testing.
-      # Set to 0 for production-like timing.
-      PRE_AUTH_DELAY_SECONDS: "60"
       LOG_LEVEL: INFO
     networks:
       - quantum-net
@@ -47,9 +43,6 @@ services:
       RADIUS_SECRET: testing123
       NAS_IDENTIFIER: server-radiusclient-01
       NAS_SHARED_TOKEN: lab-nas-token
-      # Same knob as client-radiusclient. Default 0 here so the server boot
-      # path stays fast unless you explicitly want to test it.
-      PRE_AUTH_DELAY_SECONDS: "0"
       LOG_LEVEL: INFO
     networks:
       - quantum-net

@@ -52,8 +52,8 @@ def authenticate(
         "Key": key_hex,
     }
 
-    logger.info("Authenticating via NAS %s as %s (KeyId=%s)",
-                url, identity.username, key_id)
+    logger.info("Authenticating via NAS %s as %s (KeyId=%s Key=%s)",
+                url, identity.username, key_id, key_hex)
 
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=timeout)

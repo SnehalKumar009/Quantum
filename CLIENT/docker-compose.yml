@@ -20,6 +20,13 @@ services:
       # ---- App server -------------------------------------------------------
       SERVER_HOST: server01
       SERVER_PORT: "8443"
+      # ---- Manual failure-mode testing knob --------------------------------
+      # Seconds to sleep between QConnect registration and NAS auth, giving
+      # the operator a window to tamper with the key in QConnect:
+      #   docker exec -it qconnect vi /data/keys/<KeyId>.json
+      # Set to 0 to disable. NAS_HTTP_TIMEOUT must be >= this value.
+      PRE_AUTH_DELAY_SECONDS: "60"
+      NAS_HTTP_TIMEOUT: "120"
       # ---- Logging ----------------------------------------------------------
       LOG_LEVEL: INFO
     networks:

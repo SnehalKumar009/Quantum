@@ -13,7 +13,9 @@ Workflow (matches Architecture.md):
 from __future__ import annotations
 
 import logging
+import os
 import sys
+import time
 
 from .config import load_config
 from .crypto_session import EncryptedMessage, decrypt, derive_session_key, encrypt
@@ -44,6 +46,20 @@ def run() -> int:
     except QConnectError as e:
         log.error("QConnect registration failed: %s", e)
         return 3
+
+    # --- Optional pause for manual failure-mode testing ---------------------
+    # Lets an operator tamper with the key inside QConnect (e.g.
+    #   docker exec -it qconnect vi /data/keys/<KeyId>.json
+    # ) between registration and the NAS auth call below, so the resulting
+    # Access-Reject can be observed end-to-end. Default 0 = no delay.
+    pre_auth_delay = float(os.environ.get("PRE_AUTH_DELAY_SECONDS", "0"))
+    if pre_auth_delay > 0:
+        log.info(
+            "PRE_AUTH_DELAY_SECONDS=%.1f - sleeping before NAS auth "
+            "(window to tamper with KeyId=%s in QConnect).",
+            pre_auth_delay, my_key.key_id,
+        )
+        time.sleep(pre_auth_delay)
 
     # --- Step 2: authenticate via NAS ---------------------------------------
     try:
