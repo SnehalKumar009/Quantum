@@ -51,6 +51,16 @@ RUN sed -i 's/\r$//' /usr/local/bin/quantum-key-check \
 COPY raddb/policy.d/quantum-key-check /etc/raddb/policy.d/quantum-key-check
 RUN sed -i 's/\r$//' /etc/raddb/policy.d/quantum-key-check
 
+# The %{exec:...} xlat used by the quantum_key_check policy needs the default
+# `exec` module instance to be configured with `wait = yes` (so FreeRADIUS
+# actually captures stdout). The stock module ships with `wait = no`, which
+# silently expands to "" and makes every legitimate auth get rejected with
+# "Quantum-Key validation failed". Flip it via sed on the resolved file (the
+# entry in mods-enabled is a symlink into mods-available).
+RUN target="$(readlink -f /etc/raddb/mods-enabled/exec)" \
+ && sed -i 's/^[[:space:]]*wait[[:space:]]*=.*/\twait = yes/' "$target" \
+ && grep -E '^\s*wait\s*=' "$target"
+
 # Inject `quantum_key_check` as the first statement inside `authorize {`
 # in the default virtual server. Idempotent: only inserts if not already there.
 RUN target="$(readlink -f /etc/raddb/sites-enabled/default)" \
