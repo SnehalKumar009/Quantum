@@ -11,6 +11,7 @@ fields to the NAS and let it speak RADIUS upstream:
 from __future__ import annotations
 
 import logging
+import os
 from typing import Optional
 
 import requests
@@ -18,6 +19,10 @@ import requests
 from .config import IdentityConfig, NasConfig
 
 logger = logging.getLogger(__name__)
+
+# Must exceed the NAS-side PRE_AUTH_DELAY_SECONDS, otherwise the supplicant
+# will time out before the NAS gets a chance to forward to RADIUS.
+NAS_HTTP_TIMEOUT = float(os.environ.get("NAS_HTTP_TIMEOUT", "120"))
 
 
 class NasAuthError(Exception):
@@ -30,7 +35,7 @@ def authenticate(
     key_id: str,
     key_hex: str,
     *,
-    timeout: float = 10.0,
+    timeout: float = NAS_HTTP_TIMEOUT,
 ) -> str:
     """
     Returns the server's Reply-Message on success, raises NasAuthError otherwise.

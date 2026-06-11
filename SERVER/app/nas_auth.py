@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 import logging
+import os
 
 import requests
 
 from .config import IdentityConfig, NasConfig
 
 logger = logging.getLogger(__name__)
+
+# Must exceed the NAS-side PRE_AUTH_DELAY_SECONDS.
+NAS_HTTP_TIMEOUT = float(os.environ.get("NAS_HTTP_TIMEOUT", "120"))
 
 
 class NasAuthError(Exception):
@@ -20,7 +24,7 @@ def authenticate(
     key_id: str,
     key_hex: str,
     *,
-    timeout: float = 10.0,
+    timeout: float = NAS_HTTP_TIMEOUT,
 ) -> str:
     url = f"{nas.url}/auth"
     headers = {"Content-Type": "application/json"}

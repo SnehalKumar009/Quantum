@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 import os
 import socket
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -37,6 +38,13 @@ RADIUS_SECRET     = os.environ.get("RADIUS_SECRET", "testing123").encode()
 NAS_IDENTIFIER    = os.environ.get("NAS_IDENTIFIER", "radius-client-01")
 NAS_SHARED_TOKEN  = os.environ.get("NAS_SHARED_TOKEN", "lab-nas-token")
 LOG_LEVEL         = os.environ.get("LOG_LEVEL", "INFO").upper()
+
+# Optional artificial pause before forwarding the Access-Request upstream.
+# Useful for manual failure-mode testing: gives the operator a window to
+# tamper with the key in QConnect (e.g. `docker exec -it qconnect vi
+# /data/keys/<KeyId>.json`) between supplicant registration and the actual
+# RADIUS auth attempt. Default 0 = no delay.
+PRE_AUTH_DELAY_SECONDS = float(os.environ.get("PRE_AUTH_DELAY_SECONDS", "0"))
 
 DICT_PATH = Path(__file__).with_name("radius_dictionary")
 
@@ -111,6 +119,14 @@ def _send_access_request(req_body: AuthRequest) -> AuthResponse:
         req_body.username, req_body.KeyId, len(req_body.Key),
         RADIUS_HOST, RADIUS_AUTH_PORT,
     )
+
+    if PRE_AUTH_DELAY_SECONDS > 0:
+        log.info(
+            "PRE_AUTH_DELAY_SECONDS=%.1f - sleeping before forwarding to RADIUS "
+            "(window for manual key tampering in QConnect).",
+            PRE_AUTH_DELAY_SECONDS,
+        )
+        time.sleep(PRE_AUTH_DELAY_SECONDS)
 
     try:
         reply = client.SendPacket(req)
