@@ -1,0 +1,51 @@
+# Top-level orchestration for the Quantum Secure Lab.
+# Runs radius01 + server01 + client01 with a single command:
+#
+#     docker compose up --build
+#
+# (the per-folder docker-compose.yml files still work for running each
+# component in isolation).
+
+name: quantum-lab
+
+services:
+  radius01:
+    extends:
+      file: ./RADIUS/docker-compose.yml
+      service: radius01
+    build:
+      context: ./RADIUS
+      dockerfile: Dockerfile
+
+  server01:
+    extends:
+      file: ./SERVER/docker-compose.yml
+      service: server01
+    build:
+      context: ./SERVER
+      dockerfile: Dockerfile
+    depends_on:
+      - radius01
+
+  client01:
+    extends:
+      file: ./CLIENT/docker-compose.yml
+      service: client01
+    build:
+      context: ./CLIENT
+      dockerfile: Dockerfile
+    depends_on:
+      radius01:
+        condition: service_started
+      server01:
+        condition: service_healthy
+
+networks:
+  quantum-net:
+    name: quantum-net
+    driver: bridge
+
+volumes:
+  server01-certs:
+
+

@@ -23,7 +23,10 @@ RUN pip install -r requirements.txt
 
 COPY app/ ./app/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh \
+# Strip any CRLF that Windows editors / git autocrlf may have introduced,
+# otherwise the shebang fails inside the Linux container.
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh \
  && mkdir -p /app/certs
 
 RUN useradd --create-home --shell /bin/bash appuser \

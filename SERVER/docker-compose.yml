@@ -30,6 +30,13 @@ services:
       - server01-certs:/app/certs
     networks:
       - quantum-net
+    healthcheck:
+      # Cheap TCP probe - is the TLS listener accepting connections?
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8443),2); s.close()"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
 
 volumes:
   server01-certs:
