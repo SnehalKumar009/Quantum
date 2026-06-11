@@ -1,27 +1,53 @@
 services:
-  radius-client:
+  # ---------------------------------------------------------------------------
+  # NAS dedicated to client01.
+  # ---------------------------------------------------------------------------
+  client-radiusclient:
     build:
       context: .
       dockerfile: Dockerfile
-    image: quantum-lab/radius-client:latest
-    container_name: radius-client
-    hostname: radius-client
+    image: quantum-lab/client-radiusclient:latest
+    container_name: client-radiusclient
+    hostname: client-radiusclient
     restart: unless-stopped
-    ports:
-      - "8082:8082/tcp"
     environment:
-      # ---- Upstream RADIUS server -------------------------------------------
       RADIUS_HOST: radius01
       RADIUS_AUTH_PORT: "1812"
       RADIUS_SECRET: testing123
-      NAS_IDENTIFIER: radius-client-01
-      # ---- Shared token expected from supplicants ---------------------------
+      NAS_IDENTIFIER: client-radiusclient-01
       NAS_SHARED_TOKEN: lab-nas-token
       LOG_LEVEL: INFO
     networks:
       - quantum-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8082/healthz',timeout=2).read()"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/healthz', timeout=2).read()"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # NAS dedicated to server01.
+  # ---------------------------------------------------------------------------
+  server-radiusclient:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantum-lab/server-radiusclient:latest
+    container_name: server-radiusclient
+    hostname: server-radiusclient
+    restart: unless-stopped
+    environment:
+      RADIUS_HOST: radius01
+      RADIUS_AUTH_PORT: "1812"
+      RADIUS_SECRET: testing123
+      NAS_IDENTIFIER: server-radiusclient-01
+      NAS_SHARED_TOKEN: lab-nas-token
+      LOG_LEVEL: INFO
+    networks:
+      - quantum-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/healthz', timeout=2).read()"]
       interval: 3s
       timeout: 2s
       retries: 10

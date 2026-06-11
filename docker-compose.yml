@@ -1,13 +1,18 @@
-﻿# Top-level orchestration for the Quantum Secure Lab.
-# Single command from this directory:
+# Top-level orchestration for the Quantum Secure Lab (POC).
 #
-#     docker compose up --build
+# PREREQUISITE: create the shared Docker network ONCE before running this:
+#   docker network create quantum-net
+#
+# Then from this folder:
+#   docker compose up --build
 #
 # Per-folder docker-compose.yml files still work for running each
-# component in isolation (provided quantum-net already exists).
+# component in isolation, in this order:
+#   RADIUS_CLIENT -> RADIUS -> QConnect -> SERVER -> CLIENT
 name: quantum-lab
+
 services:
-  # ---- Core infrastructure ---------------------------------------------------
+  # ---- Core RADIUS server ----------------------------------------------------
   radius01:
     extends:
       file: ./RADIUS/docker-compose.yml
@@ -15,6 +20,29 @@ services:
     build:
       context: ./RADIUS
       dockerfile: Dockerfile
+
+  # ---- Per-supplicant NAS instances (defined in RADIUS_CLIENT/) -------------
+  # NOTE: The NASes do NOT depend_on radius01 — they only contact it lazily
+  # when /auth is invoked, and their healthcheck hits their own /healthz.
+  # Keeping them independent matches the documented startup order:
+  #   RADIUS_CLIENT -> RADIUS -> QConnect -> SERVER -> CLIENT
+  client-radiusclient:
+    extends:
+      file: ./RADIUS_CLIENT/docker-compose.yml
+      service: client-radiusclient
+    build:
+      context: ./RADIUS_CLIENT
+      dockerfile: Dockerfile
+
+  server-radiusclient:
+    extends:
+      file: ./RADIUS_CLIENT/docker-compose.yml
+      service: server-radiusclient
+    build:
+      context: ./RADIUS_CLIENT
+      dockerfile: Dockerfile
+
+  # ---- Key service -----------------------------------------------------------
   qconnect:
     extends:
       file: ./QConnect/docker-compose.yml
@@ -22,26 +50,7 @@ services:
     build:
       context: ./QConnect
       dockerfile: Dockerfile
-  # ---- Per-supplicant NAS instances ------------------------------------------
-  # Each supplicant has its own radius-client. Both forward to radius01.
-  client-radiusclient:
-    extends:
-      file: ./CLIENT/docker-compose.yml
-      service: client-radiusclient
-    build:
-      context: ./RADIUS_CLIENT
-      dockerfile: Dockerfile
-    depends_on:
-      - radius01
-  server-radiusclient:
-    extends:
-      file: ./SERVER/docker-compose.yml
-      service: server-radiusclient
-    build:
-      context: ./RADIUS_CLIENT
-      dockerfile: Dockerfile
-    depends_on:
-      - radius01
+
   # ---- Application server / client ------------------------------------------
   server01:
     extends:
@@ -55,6 +64,7 @@ services:
         condition: service_started
       server-radiusclient:
         condition: service_healthy
+
   client01:
     extends:
       file: ./CLIENT/docker-compose.yml
@@ -69,6 +79,7 @@ services:
         condition: service_healthy
       server01:
         condition: service_healthy
+
   # ---- Browser tooling -------------------------------------------------------
   radius-ui:
     extends:
@@ -79,10 +90,13 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - radius01
+
 networks:
   quantum-net:
     name: quantum-net
-    driver: bridge
+    external: true
+
 volumes:
   server01-certs:
   qconnect-data:
+
