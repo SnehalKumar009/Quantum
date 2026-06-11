@@ -15,6 +15,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Tiny editor for in-container manual key tampering / debugging
+# (e.g. `docker exec -it qconnect vi /data/keys/<KeyId>.json`).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends vim-tiny \
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -sf /usr/bin/vi /usr/local/bin/vim
+
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 

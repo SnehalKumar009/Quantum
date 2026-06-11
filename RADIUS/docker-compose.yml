@@ -7,6 +7,11 @@ services:
     container_name: radius01
     hostname: radius01
     restart: unless-stopped
+    environment:
+      # Used by /usr/local/bin/quantum-key-check (invoked from policy.d/quantum-key-check)
+      # to fetch the canonical Key for a given KeyId and compare against the VSA
+      # sent by the NAS. Inherited by rlm_exec children at auth time.
+      QCONNECT_URL: http://qconnect:9000
     ports:
       # Expose to the host for local testing with radtest / radclient.
       - "1812:1812/udp"

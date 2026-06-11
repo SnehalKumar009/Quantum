@@ -33,6 +33,30 @@ COPY scripts/qconnect-fetch.sh /usr/local/bin/qconnect-fetch
 RUN sed -i 's/\r$//' /usr/local/bin/qconnect-fetch \
  && chmod +x /usr/local/bin/qconnect-fetch
 
+# -----------------------------------------------------------------------------
+# Quantum-Key validation against QConnect (POC enhancement).
+#
+# 1. Helper script `/usr/local/bin/quantum-key-check` that curls QConnect's
+#    /keys/{KeyId} and compares the stored Key to the one sent in the VSA.
+# 2. Policy file `/etc/raddb/policy.d/quantum-key-check` defining the
+#    `quantum_key_check` policy invoked from authorize {}.
+# 3. Inject a call to that policy at the top of the `authorize` section in
+#    sites-enabled/default so it runs before pap and can short-circuit with
+#    Access-Reject on any failure. Uses the symlink target to be safe.
+# -----------------------------------------------------------------------------
+COPY scripts/quantum-key-check.sh /usr/local/bin/quantum-key-check
+RUN sed -i 's/\r$//' /usr/local/bin/quantum-key-check \
+ && chmod +x /usr/local/bin/quantum-key-check
+
+COPY raddb/policy.d/quantum-key-check /etc/raddb/policy.d/quantum-key-check
+RUN sed -i 's/\r$//' /etc/raddb/policy.d/quantum-key-check
+
+# Inject `quantum_key_check` as the first statement inside `authorize {`
+# in the default virtual server. Idempotent: only inserts if not already there.
+RUN target="$(readlink -f /etc/raddb/sites-enabled/default)" \
+ && grep -q 'quantum_key_check' "$target" \
+    || sed -i '0,/^authorize {/{s/^authorize {/authorize {\n\tquantum_key_check/}' "$target"
+
 # Standard RADIUS ports
 EXPOSE 1812/udp 1813/udp
 

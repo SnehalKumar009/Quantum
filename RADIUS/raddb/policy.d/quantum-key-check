@@ -1,0 +1,39 @@
+# =============================================================================
+# quantum_key_check - Enforce QConnect-issued (KeyId, Key) at auth time.
+#
+# Called from sites-enabled/default { authorize { ... } } before pap.
+#
+# Behavior (fail-closed):
+#   - Only enforced for User-Name in { client01, server01 }. Other users
+#     (testuser, radius-ui smoke tests, radtest from localhost) pass through
+#     unchanged so the existing test workflows keep working.
+#   - For an enforced user:
+#       * Missing Quantum-Key-Id or Quantum-Key VSA -> Access-Reject.
+#       * /usr/local/bin/quantum-key-check returns anything other than "OK"
+#         (KeyId not found, QConnect unreachable, mismatch) -> Access-Reject.
+#       * On "OK" we continue, and the normal username/password check
+#         (files + pap) decides Access-Accept / Access-Reject.
+#
+# The helper script reads QCONNECT_URL from the environment (default
+# http://qconnect:9000). It is injected into FreeRADIUS via the
+# Dockerfile.
+# =============================================================================
+quantum_key_check {
+    if (&User-Name == "client01" || &User-Name == "server01") {
+        if (!&Quantum-Key-Id || !&Quantum-Key) {
+            update reply {
+                Reply-Message := "Quantum-Key VSAs missing"
+            }
+            reject
+        }
+        else {
+            if ("%{exec:/usr/local/bin/quantum-key-check %{Quantum-Key-Id} %{Quantum-Key}}" != "OK") {
+                update reply {
+                    Reply-Message := "Quantum-Key validation failed"
+                }
+                reject
+            }
+        }
+    }
+}
+
