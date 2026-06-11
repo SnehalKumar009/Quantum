@@ -4,7 +4,8 @@ See [`Architecture.md`](./Architecture.md) for the design.
 
 ## Requirements
 
-- **Docker Desktop** on Windows / macOS, or Docker Engine + Compose v2 on Linux.
+- **Docker Desktop** on Windows / macOS, or Docker Engine + Compose v2 on
+  Linux.
 - Nothing else. No local Python, no OpenSSL, no `radtest`.
 
 ## Run the whole lab (one command)
@@ -17,88 +18,72 @@ docker compose up --build
 
 Order is handled automatically:
 
-1. `radius01` starts (FreeRADIUS).
-2. `server01` boots, RADIUS-auths, generates self-signed TLS cert, listens on `:8443`.
-3. Healthcheck waits for the TLS port to accept connections.
-4. `client01` runs once: RADIUS auth → TLS → quantum exchange → encrypted message → exit `0`.
-5. `radius-ui` (FastAPI) is available at **http://localhost:8081**.
+1. `radius01` (FreeRADIUS) and `qconnect` (key store) start.
+2. `client-radiusclient` and `server-radiusclient` (the two NAS instances)
+   start and pass their `/healthz` probe.
+3. `server01` boots, registers with QConnect, authenticates via
+   `server-radiusclient`, generates a self-signed TLS cert, listens on
+   `:8443`.
+4. `client01` runs once: register with QConnect → authenticate via
+   `client-radiusclient` → TLS to `server01` → quantum exchange →
+   encrypted message → exit `0`.
+5. `radius-ui` available at <http://localhost:8081>.
 
 Stop everything:
 
 ```bash
 docker compose down          # remove containers + network
-docker compose down -v       # also wipe the TLS cert volume
+docker compose down -v       # also wipe the cert / qconnect volumes
 ```
 
 ## Run components individually
 
-Each folder has its own `docker-compose.yml`:
+Each folder has its own `docker-compose.yml` and brings up its own
+dependencies (e.g. `CLIENT/docker-compose.yml` also starts
+`client-radiusclient`). Order:
 
 ```bash
 cd RADIUS    && docker compose up -d --build && cd ..
-cd SERVER    && docker compose up -d --build && cd ..
+cd QConnect  && docker compose up -d --build && cd ..
 cd RADIUS_UI && docker compose up -d --build && cd ..
-cd CLIENT    && docker compose up    --build && cd ..
+cd SERVER    && docker compose up -d --build && cd ..    # also starts server-radiusclient
+cd CLIENT    && docker compose up    --build && cd ..    # also starts client-radiusclient
 ```
 
-When run individually, RADIUS must come up first because it owns the
+When run this way, RADIUS must come up first because it owns the
 `quantum-net` Docker network that the others attach to as `external`.
 
 ## Folder map
 
-| Folder          | Component         | Image tag                         | Exposed |
-| --------------- | ----------------- | --------------------------------- | ------- |
-| `RADIUS/`       | FreeRADIUS 3.2.5  | `quantum-lab/radius01:latest`     | udp 1812/1813 |
-| `RADIUS_CLIENT/`| FastAPI NAS       | `quantum-lab/radius-client:latest`| tcp 8082 |
-| `SERVER/`       | Python TLS srv    | `quantum-lab/server01:latest`     | tcp 8443 |
-| `CLIENT/`       | Python client     | `quantum-lab/client01:latest`     | – (one-shot) |
-| `RADIUS_UI/`    | FastAPI web UI    | `quantum-lab/radius-ui:latest`    | tcp 8081 |
-| `QConnect/`     | RNG / key store   | `quantum-lab/qconnect:latest`     | tcp 9000 |
+| Folder          | Component         | Image tag                                  | Exposed |
+| --------------- | ----------------- | ------------------------------------------ | ------- |
+| `RADIUS/`       | FreeRADIUS 3.2.5  | `quantum-lab/radius01:latest`              | udp 1812/1813 |
+| `RADIUS_CLIENT/`| NAS image source  | `quantum-lab/{client,server}-radiusclient:latest` (built twice from this folder) | internal |
+| `SERVER/`       | Python TLS srv    | `quantum-lab/server01:latest`              | tcp 8443 |
+| `CLIENT/`       | Python client     | `quantum-lab/client01:latest`              | – (one-shot) |
+| `RADIUS_UI/`    | FastAPI web UI    | `quantum-lab/radius-ui:latest`             | tcp 8081 |
+| `QConnect/`     | RNG / key store   | `quantum-lab/qconnect:latest`              | tcp 9000 |
 
 ## Boot flow
 
 ```
-qconnect ─┐                                       ┌─ radius01 (FreeRADIUS)
-          │                                       │
-          │   POST /keys/generate                 │  RADIUS over UDP
-client01 ─┤───────────────────────────────────┐   │
-server01 ─┘                                   ▼   │
-                                       radius-client (NAS)
-                                              │   ▲
-                                              └───┘
-client01 / server01 then call:
-   POST http://radius-client:8082/auth
-     { username, password, KeyId, Key }      (Authorization: Bearer lab-nas-token)
+qconnect ──┐                                                  ┌─ radius01 (FreeRADIUS)
+           │                                                  │
+           │   POST /keys/generate                            │
+client01 ──┤────────────────┐                                 │  RADIUS over UDP
+server01 ──┘                ▼                                 │
+                  client-radiusclient (NAS for client01) ─────┤
+                  server-radiusclient (NAS for server01) ─────┘
+
+client01 / server01 then:
+   POST http://<their-nas>:8082/auth
+        { username, password, KeyId, Key }   (Authorization: Bearer lab-nas-token)
    → NAS forwards to radius01 with User-Name + User-Password + VSAs
-      Quantum-Key-Id (99999.1) and Quantum-Key (99999.2).
+     Quantum-Key-Id (99999.1) and Quantum-Key (99999.2).
 ```
 
 After successful auth, `client01` ↔ `server01` do TLS + quantum exchange +
 AES-GCM as before.
-
-## QConnect (key distribution)
-
-QConnect is a small HTTP service that simulates the new RNG product.
-It generates `KeyId / Key` pairs, persists each one as a file inside the
-container, and serves them on demand:
-
-```bash
-# From your host:
-curl -s -X POST http://localhost:9000/keys/generate | jq
-
-# From inside any lab container (radius01, server01, client01):
-curl -s -X POST http://qconnect:9000/keys/generate
-```
-
-The RADIUS container has a helper script that fetches a key from QConnect
-and stores it in `/etc/raddb/mods-config/files/keys` using the **same
-line format as `authorize`** (so `qkey-…    Cleartext-Password := "…"`):
-
-```bash
-docker exec radius01 qconnect-fetch              # generate + store new key
-docker exec radius01 qconnect-fetch qkey-abc123  # fetch existing by ID + store
-docker exec radius01 cat /etc/raddb/mods-config/files/keys
-```
 
 ## Default credentials
 
@@ -107,7 +92,7 @@ docker exec radius01 cat /etc/raddb/mods-config/files/keys
 | `client01` | `clientPassword` |
 | `server01` | `serverPassword` |
 
-RADIUS shared secret: `testing123`.
+RADIUS shared secret: `testing123`. NAS bearer token: `lab-nas-token`.
 
 ## Windows note
 

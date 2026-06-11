@@ -1,4 +1,34 @@
-services:
+﻿services:
+  # ---------------------------------------------------------------------------
+  # NAS dedicated to server01. Same image as ../RADIUS_CLIENT, separate
+  # instance with its own identity. Talks RADIUS upstream to radius01.
+  # ---------------------------------------------------------------------------
+  server-radiusclient:
+    build:
+      context: ../RADIUS_CLIENT
+      dockerfile: Dockerfile
+    image: quantum-lab/server-radiusclient:latest
+    container_name: server-radiusclient
+    hostname: server-radiusclient
+    restart: unless-stopped
+    environment:
+      RADIUS_HOST: radius01
+      RADIUS_AUTH_PORT: "1812"
+      RADIUS_SECRET: testing123
+      NAS_IDENTIFIER: server-radiusclient-01
+      NAS_SHARED_TOKEN: lab-nas-token
+      LOG_LEVEL: INFO
+    networks:
+      - quantum-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/healthz', timeout=2).read()"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+  # ---------------------------------------------------------------------------
+  # The application server itself. Routes its auth through server-radiusclient.
+  # ---------------------------------------------------------------------------
   server01:
     build:
       context: .
@@ -10,11 +40,11 @@ services:
     ports:
       - "8443:8443/tcp"
     environment:
-      # ---- Identity ----------------------------------------------------------
+      # ---- Identity ---------------------------------------------------------
       USERNAME: server01
       PASSWORD: serverPassword
-      # ---- NAS (radius-client) ----------------------------------------------
-      NAS_URL: http://radius-client:8082
+      # ---- NAS (server''s own radius-client) --------------------------------
+      NAS_URL: http://server-radiusclient:8082
       NAS_SHARED_TOKEN: lab-nas-token
       # ---- QConnect (registration on boot) ----------------------------------
       QCONNECT_URL: http://qconnect:9000
@@ -26,24 +56,21 @@ services:
       # ---- Logging ----------------------------------------------------------
       LOG_LEVEL: INFO
     volumes:
-      # Persist the auto-generated TLS cert so it survives container rebuilds
-      # and can optionally be shared with the client.
       - server01-certs:/app/certs
     networks:
       - quantum-net
+    depends_on:
+      server-radiusclient:
+        condition: service_healthy
     healthcheck:
-      # Cheap TCP probe - is the TLS listener accepting connections?
       test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8443),2); s.close()"]
       interval: 3s
       timeout: 2s
       retries: 10
       start_period: 5s
-
 volumes:
   server01-certs:
-
 networks:
   quantum-net:
     name: quantum-net
     external: true
-

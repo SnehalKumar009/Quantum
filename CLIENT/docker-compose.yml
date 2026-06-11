@@ -1,4 +1,34 @@
-services:
+﻿services:
+  # ---------------------------------------------------------------------------
+  # NAS dedicated to client01. Same image as ../RADIUS_CLIENT, just a separate
+  # instance with its own identity. Talks RADIUS upstream to radius01.
+  # ---------------------------------------------------------------------------
+  client-radiusclient:
+    build:
+      context: ../RADIUS_CLIENT
+      dockerfile: Dockerfile
+    image: quantum-lab/client-radiusclient:latest
+    container_name: client-radiusclient
+    hostname: client-radiusclient
+    restart: unless-stopped
+    environment:
+      RADIUS_HOST: radius01
+      RADIUS_AUTH_PORT: "1812"
+      RADIUS_SECRET: testing123
+      NAS_IDENTIFIER: client-radiusclient-01
+      NAS_SHARED_TOKEN: lab-nas-token
+      LOG_LEVEL: INFO
+    networks:
+      - quantum-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/healthz', timeout=2).read()"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+  # ---------------------------------------------------------------------------
+  # The client application itself. Routes its auth through client-radiusclient.
+  # ---------------------------------------------------------------------------
   client01:
     build:
       context: .
@@ -6,15 +36,14 @@ services:
     image: quantum-lab/client01:latest
     container_name: client01
     hostname: client01
-    # The client is a one-shot workflow for now (auth + future TLS/quantum).
-    # Keep it from auto-restarting on success.
+    # One-shot workflow; don't auto-restart on success.
     restart: "no"
     environment:
-      # ---- Identity ----------------------------------------------------------
+      # ---- Identity ---------------------------------------------------------
       USERNAME: client01
       PASSWORD: clientPassword
-      # ---- NAS (radius-client) ----------------------------------------------
-      NAS_URL: http://radius-client:8082
+      # ---- NAS (client''s own radius-client) ---------------------------------
+      NAS_URL: http://client-radiusclient:8082
       NAS_SHARED_TOKEN: lab-nas-token
       # ---- QConnect (registration on boot) ----------------------------------
       QCONNECT_URL: http://qconnect:9000
@@ -25,10 +54,10 @@ services:
       LOG_LEVEL: INFO
     networks:
       - quantum-net
-    # The RADIUS server lives in ../RADIUS/docker-compose.yml and creates this
-    # external network. We just attach to it here.
+    depends_on:
+      client-radiusclient:
+        condition: service_healthy
 networks:
   quantum-net:
     name: quantum-net
     external: true
-

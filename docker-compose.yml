@@ -1,14 +1,13 @@
-# Top-level orchestration for the Quantum Secure Lab.
-# Runs radius01 + server01 + client01 with a single command:
+﻿# Top-level orchestration for the Quantum Secure Lab.
+# Single command from this directory:
 #
 #     docker compose up --build
 #
-# (the per-folder docker-compose.yml files still work for running each
-# component in isolation).
-
+# Per-folder docker-compose.yml files still work for running each
+# component in isolation (provided quantum-net already exists).
 name: quantum-lab
-
 services:
+  # ---- Core infrastructure ---------------------------------------------------
   radius01:
     extends:
       file: ./RADIUS/docker-compose.yml
@@ -16,7 +15,6 @@ services:
     build:
       context: ./RADIUS
       dockerfile: Dockerfile
-
   qconnect:
     extends:
       file: ./QConnect/docker-compose.yml
@@ -24,17 +22,27 @@ services:
     build:
       context: ./QConnect
       dockerfile: Dockerfile
-
-  radius-client:
+  # ---- Per-supplicant NAS instances ------------------------------------------
+  # Each supplicant has its own radius-client. Both forward to radius01.
+  client-radiusclient:
     extends:
-      file: ./RADIUS_CLIENT/docker-compose.yml
-      service: radius-client
+      file: ./CLIENT/docker-compose.yml
+      service: client-radiusclient
     build:
       context: ./RADIUS_CLIENT
       dockerfile: Dockerfile
     depends_on:
       - radius01
-
+  server-radiusclient:
+    extends:
+      file: ./SERVER/docker-compose.yml
+      service: server-radiusclient
+    build:
+      context: ./RADIUS_CLIENT
+      dockerfile: Dockerfile
+    depends_on:
+      - radius01
+  # ---- Application server / client ------------------------------------------
   server01:
     extends:
       file: ./SERVER/docker-compose.yml
@@ -45,9 +53,8 @@ services:
     depends_on:
       qconnect:
         condition: service_started
-      radius-client:
+      server-radiusclient:
         condition: service_healthy
-
   client01:
     extends:
       file: ./CLIENT/docker-compose.yml
@@ -58,11 +65,11 @@ services:
     depends_on:
       qconnect:
         condition: service_started
-      radius-client:
+      client-radiusclient:
         condition: service_healthy
       server01:
         condition: service_healthy
-
+  # ---- Browser tooling -------------------------------------------------------
   radius-ui:
     extends:
       file: ./RADIUS_UI/docker-compose.yml
@@ -72,15 +79,10 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - radius01
-
-
 networks:
   quantum-net:
     name: quantum-net
     driver: bridge
-
 volumes:
   server01-certs:
   qconnect-data:
-
-

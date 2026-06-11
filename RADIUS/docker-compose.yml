@@ -17,5 +17,5 @@ services:
 networks:
   quantum-net:
     name: quantum-net
-    driver: bridge
+    external: true
 
