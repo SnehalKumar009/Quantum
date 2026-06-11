@@ -1,0 +1,34 @@
+services:
+  radius-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantum-lab/radius-client:latest
+    container_name: radius-client
+    hostname: radius-client
+    restart: unless-stopped
+    ports:
+      - "8082:8082/tcp"
+    environment:
+      # ---- Upstream RADIUS server -------------------------------------------
+      RADIUS_HOST: radius01
+      RADIUS_AUTH_PORT: "1812"
+      RADIUS_SECRET: testing123
+      NAS_IDENTIFIER: radius-client-01
+      # ---- Shared token expected from supplicants ---------------------------
+      NAS_SHARED_TOKEN: lab-nas-token
+      LOG_LEVEL: INFO
+    networks:
+      - quantum-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8082/healthz',timeout=2).read()"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+networks:
+  quantum-net:
+    name: quantum-net
+    external: true
+

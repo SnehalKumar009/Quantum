@@ -1,13 +1,12 @@
 # server01 — Quantum Secure Lab (Python, Dockerized)
 
-Python application server that implements the `server01` role from
-[`../Architecture.md`](../Architecture.md):
+TLS application server in the lab. On startup it **registers with
+QConnect** for a fresh `(KeyId, Key)`, **authenticates through the NAS**
+(`radius-client`), generates a self-signed TLS cert on first boot, then
+listens on `:8443` for `client01` connections.
 
-1. **Phase 3 — RADIUS auth** against `radius01` on startup (✅)
-2. **Phase 2 — TLS listener** on `0.0.0.0:8443` with auto-generated self-signed cert (✅)
-3. **Phase 4 — Quantum random** exchange QC ↔ QS (✅, classical placeholder)
-4. **Phase 5 — Session key** `SHA-256(QC || QS)` (✅)
-5. **Phase 6 — AES-GCM** decrypt of client message + encrypted ack (✅)
+Per connection: receive QC → send QS → derive session key → decrypt
+business message → send encrypted ack.
 
 ## Layout
 
@@ -15,103 +14,103 @@ Python application server that implements the `server01` role from
 SERVER/
 ├── Dockerfile
 ├── docker-compose.yml
-├── entrypoint.sh            # auto-generates self-signed TLS cert on first run
-├── requirements.txt
+├── entrypoint.sh            # generates self-signed cert on first run
+├── requirements.txt         # requests, cryptography
 ├── .dockerignore
 ├── README.md
 └── app/
     ├── __init__.py
-    ├── main.py              # RADIUS auth, then serve_forever
+    ├── main.py              # QConnect register -> NAS auth -> serve_forever
     ├── config.py
-    ├── radius_auth.py
-    ├── radius_dictionary
+    ├── qconnect_client.py   # POST /keys/generate on boot
+    ├── nas_auth.py          # POST /auth to radius-client
     ├── tls_server.py        # TLS listener + per-conn protocol
-    ├── framing.py           # 4-byte length-prefixed frames
-    ├── quantum.py           # Phase 4 placeholder
+    ├── framing.py
+    ├── quantum.py           # QS generator (Phase 4 placeholder)
     └── crypto_session.py    # SHA-256 + AES-GCM
 ```
 
-## Prerequisites
+## Boot workflow
 
-`radius01` must be running first (it owns the `quantum-net` network):
+```text
+1. entrypoint.sh: generate self-signed cert at /app/certs/{server.crt,server.key}
+                  (first boot only; persisted in named volume server01-certs)
 
-```powershell
-cd ..\RADIUS
-docker compose up -d --build
+2. POST {QCONNECT_URL}/keys/generate  -> {"KeyId","Key"}
+
+3. POST {NAS_URL}/auth
+       Authorization: Bearer {NAS_SHARED_TOKEN}
+       {"username":"server01","password":"serverPassword","KeyId","Key"}
+       -> 200 OK
+
+4. Listen on {LISTEN_HOST}:{LISTEN_PORT} (TLS 1.2+).
+   Per connection (inside the TLS tunnel):
+     <- frame(QC, 32B)
+     -> frame(QS, 32B)
+        SessionKey = SHA-256(QC || QS)
+     <- frame(nonce(12) || AES-GCM-ciphertext)
+     -> frame(nonce(12) || AES-GCM-ciphertext)   (ack)
 ```
-
-## Build & Run server01
-
-```powershell
-cd ..\SERVER
-docker compose up --build
-```
-
-First boot: `entrypoint.sh` generates a self-signed cert at
-`/app/certs/server.crt` + `server.key` (persisted in the `server01-certs`
-named volume). Subsequent starts reuse it.
 
 ## Configuration (env vars)
 
-| Variable                | Default          | Description                              |
-| ----------------------- | ---------------- | ---------------------------------------- |
-| `RADIUS_HOST`           | `radius01`       | Hostname of RADIUS server                |
-| `RADIUS_AUTH_PORT`      | `1812`           |                                          |
-| `RADIUS_SECRET`         | `testing123`     |                                          |
-| `RADIUS_USERNAME`       | `server01`       |                                          |
-| `RADIUS_PASSWORD`       | `serverPassword` |                                          |
-| `RADIUS_NAS_IDENTIFIER` | `server01`       |                                          |
-| `LISTEN_HOST`           | `0.0.0.0`        | Bind address                             |
-| `LISTEN_PORT`           | `8443`           | TLS port                                 |
-| `CERT_DIR`              | `/app/certs`     | Where the self-signed cert lives         |
-| `CERT_CN`               | `server01`       | CN/SAN baked into the auto-gen cert      |
-| `LOG_LEVEL`             | `INFO`           |                                          |
+| Variable           | Default                       | Description                              |
+| ------------------ | ----------------------------- | ---------------------------------------- |
+| `USERNAME`         | `server01`                    | RADIUS identity (forwarded by NAS)       |
+| `PASSWORD`         | `serverPassword`              |                                          |
+| `NAS_URL`          | `http://radius-client:8082`   | Where the NAS lives                      |
+| `NAS_SHARED_TOKEN` | `lab-nas-token`               | Bearer token expected by NAS             |
+| `QCONNECT_URL`     | `http://qconnect:9000`        |                                          |
+| `LISTEN_HOST`      | `0.0.0.0`                     |                                          |
+| `LISTEN_PORT`      | `8443`                        |                                          |
+| `CERT_DIR`         | `/app/certs`                  | Where the auto-gen cert is stored        |
+| `CERT_CN`          | `server01`                    | CN/SAN baked into the cert               |
+| `LOG_LEVEL`        | `INFO`                        |                                          |
 
-## End-to-End Smoke Test
+## Exit codes
 
-In three terminals:
+| Code | Meaning                              |
+| ---- | ------------------------------------ |
+| `0`  | Clean shutdown                       |
+| `2`  | NAS auth failure (won't serve)       |
+| `3`  | QConnect registration failure        |
+| `1`  | Any other crash                      |
 
-```powershell
-# 1) RADIUS
-cd C:\Users\snkumar\CODE\QUANTUM\RADIUS
-docker compose up --build
+## Run on its own
 
-# 2) Server
-cd C:\Users\snkumar\CODE\QUANTUM\SERVER
-docker compose up --build
-
-# 3) Client (will auth, TLS-connect, exchange, decrypt ack, exit 0)
-cd C:\Users\snkumar\CODE\QUANTUM\CLIENT
+```bash
+docker compose up -d --build radius01 qconnect radius-client     # deps
+cd SERVER
 docker compose up --build
 ```
 
-Server log should show, per client run:
+## End-to-end smoke test
+
+From the repo root (simplest):
+
+```bash
+docker compose up --build
+```
+
+Server log per `client01` run:
 
 ```text
-[INFO] server01: Accepted TLS connection from ('172.x.y.z', NNNN)
-[INFO] server01.conn.x.y.z:NNNN: Received QC (32 bytes)
-[INFO] server01.conn.x.y.z:NNNN: Sent QS (32 bytes)
-[INFO] server01.conn.x.y.z:NNNN: Derived SessionKey first 8 bytes: ...
-[INFO] server01.conn.x.y.z:NNNN: Decrypted message from client: b'Hello from client01'
-[INFO] server01.conn.x.y.z:NNNN: Sent encrypted ack (... bytes ciphertext)
+server01 | === server01 starting ===
+server01 | Registered with QConnect: KeyId=qkey-...
+server01 | NAS auth OK for server01. Reply-Message='Welcome server01'
+server01 | TLS listener ready on 0.0.0.0:8443 (cert=/app/certs/server.crt)
+server01 | Accepted TLS connection from ('172.x.y.z', NNNNN)
+server01.conn... | Received QC (32 bytes)
+server01.conn... | Sent QS (32 bytes)
+server01.conn... | Derived SessionKey first 8 bytes: ...
+server01.conn... | Decrypted message from client: b'Hello from client01'
+server01.conn... | Sent encrypted ack (... bytes ciphertext)
 ```
 
-Client log should show:
+## Next steps
 
-```text
-[INFO] app.tls_client: TLS connection established to server01:8443 (cipher=...)
-[INFO] client01: Received QS (32 bytes)
-[INFO] client01: Derived SessionKey ...
-[INFO] client01: Sent encrypted business message ...
-[INFO] client01: Decrypted server ack: b'ack: Hello from client01'
-```
-
-## Next Steps
-
-- **Phase 4 (real):** swap `quantum.generate_quantum_random` for a real QRNG
-  call (HTTP API or hardware).
-- **TLS verification:** stop auto-generating per-instance certs; issue them
-  from a lab CA and have `client01` verify with `TLS_VERIFY=true` +
-  `TLS_CA_FILE=/path/to/ca.crt`.
-- **mTLS:** require client certs on the listener (`ctx.verify_mode = CERT_REQUIRED`).
+- Replace `quantum.generate_quantum_random` with the real RNG/QRNG.
+- Move self-signed cert generation to a lab CA (so `client01` can run
+  with `TLS_VERIFY=true`).
+- Require client certs (`ctx.verify_mode = ssl.CERT_REQUIRED`) for mTLS.
 

@@ -21,6 +21,12 @@ COPY raddb/mods-config/files/authorize        /etc/raddb/mods-config/files/autho
 # `authorize` so anyone familiar with FreeRADIUS users files recognises it.
 COPY raddb/mods-config/files/keys             /etc/raddb/mods-config/files/keys
 
+# Quantum-Lab vendor dictionary - defines Quantum-Key-Id / Quantum-Key VSAs
+# (vendor ID 99999) so FreeRADIUS can parse and log them in Access-Requests
+# coming from radius-client. We append an $INCLUDE to the main dictionary.
+COPY raddb/dictionary.quantum-lab             /etc/raddb/dictionary.quantum-lab
+RUN echo '$INCLUDE dictionary.quantum-lab' >> /etc/raddb/dictionary
+
 # Helper that curls QConnect, parses the JSON, and appends a new line to
 # /etc/raddb/mods-config/files/keys in the same format as `authorize`.
 COPY scripts/qconnect-fetch.sh /usr/local/bin/qconnect-fetch

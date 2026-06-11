@@ -3,12 +3,20 @@
 Tiny FastAPI web UI for the lab's FreeRADIUS server. Open
 [http://localhost:8081](http://localhost:8081) after the stack is up.
 
+> **Note:** this UI talks **directly** to `radius01` over RADIUS — it
+> *does not* go through the `radius-client` NAS. That's intentional: it
+> is a sanity tool to confirm the RADIUS server is alive and the user
+> file is correct. To exercise the real auth path used by `client01` /
+> `server01`, hit `radius-client` directly (see
+> [`../RADIUS_CLIENT/README.md`](../RADIUS_CLIENT/README.md)).
+
 ## What it does
 
 - **Lists accounts** parsed from the live `authorize` file
   (`RADIUS/raddb/mods-config/files/authorize`, mounted read-only).
-- **Test form** sends a real RADIUS Access-Request to `radius01:1812` and
-  shows Access-Accept / Access-Reject plus the server's `Reply-Message`.
+- **Test form** sends a real RADIUS Access-Request to `radius01:1812`
+  and shows Access-Accept / Access-Reject plus the server's
+  `Reply-Message`.
 - `/healthz` JSON endpoint for liveness checks.
 
 ## Layout
@@ -30,8 +38,7 @@ RADIUS_UI/
 
 ## Prerequisites
 
-`radius01` (and ideally the rest of the stack) must be running so the
-`quantum-net` Docker network exists:
+`radius01` must be running (it owns the `quantum-net` Docker network):
 
 ```bash
 cd ..
@@ -58,9 +65,9 @@ Then browse to `http://localhost:8081`.
 
 ## Notes
 
-- The UI does **not** edit accounts; FreeRADIUS reads them from the
-  `authorize` file at startup. Edit that file and rebuild `radius01` to
-  add/remove users.
-- The UI itself uses RADIUS NAS-Identifier `radius-ui` (still covered by
-  the broad `clients.conf` entry, secret `testing123`).
+- The UI does **not** edit accounts. To add users, edit
+  `RADIUS/raddb/mods-config/files/authorize` and rebuild `radius01`.
+- Its requests reach `radius01` from inside the `quantum-net` subnet and
+  are matched by the broad `docker-network` entry in `clients.conf`
+  (secret `testing123`). It does not impersonate `radius-client`.
 

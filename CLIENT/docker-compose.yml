@@ -10,14 +10,15 @@ services:
     # Keep it from auto-restarting on success.
     restart: "no"
     environment:
-      # ---- RADIUS settings ---------------------------------------------------
-      RADIUS_HOST: radius01
-      RADIUS_AUTH_PORT: "1812"
-      RADIUS_SECRET: testing123
-      RADIUS_USERNAME: client01
-      RADIUS_PASSWORD: clientPassword
-      RADIUS_NAS_IDENTIFIER: client01
-      # ---- App server settings (used in later phases) -----------------------
+      # ---- Identity ----------------------------------------------------------
+      USERNAME: client01
+      PASSWORD: clientPassword
+      # ---- NAS (radius-client) ----------------------------------------------
+      NAS_URL: http://radius-client:8082
+      NAS_SHARED_TOKEN: lab-nas-token
+      # ---- QConnect (registration on boot) ----------------------------------
+      QCONNECT_URL: http://qconnect:9000
+      # ---- App server -------------------------------------------------------
       SERVER_HOST: server01
       SERVER_PORT: "8443"
       # ---- Logging ----------------------------------------------------------

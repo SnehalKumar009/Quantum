@@ -17,6 +17,24 @@ services:
       context: ./RADIUS
       dockerfile: Dockerfile
 
+  qconnect:
+    extends:
+      file: ./QConnect/docker-compose.yml
+      service: qconnect
+    build:
+      context: ./QConnect
+      dockerfile: Dockerfile
+
+  radius-client:
+    extends:
+      file: ./RADIUS_CLIENT/docker-compose.yml
+      service: radius-client
+    build:
+      context: ./RADIUS_CLIENT
+      dockerfile: Dockerfile
+    depends_on:
+      - radius01
+
   server01:
     extends:
       file: ./SERVER/docker-compose.yml
@@ -25,7 +43,10 @@ services:
       context: ./SERVER
       dockerfile: Dockerfile
     depends_on:
-      - radius01
+      qconnect:
+        condition: service_started
+      radius-client:
+        condition: service_healthy
 
   client01:
     extends:
@@ -35,8 +56,10 @@ services:
       context: ./CLIENT
       dockerfile: Dockerfile
     depends_on:
-      radius01:
+      qconnect:
         condition: service_started
+      radius-client:
+        condition: service_healthy
       server01:
         condition: service_healthy
 
@@ -50,13 +73,6 @@ services:
     depends_on:
       - radius01
 
-  qconnect:
-    extends:
-      file: ./QConnect/docker-compose.yml
-      service: qconnect
-    build:
-      context: ./QConnect
-      dockerfile: Dockerfile
 
 networks:
   quantum-net:

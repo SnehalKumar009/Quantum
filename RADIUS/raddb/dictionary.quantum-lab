@@ -1,0 +1,16 @@
+# =============================================================================
+# dictionary.quantum-lab - Vendor-Specific Attributes for the Quantum Lab.
+#
+# Loaded by FreeRADIUS via `$INCLUDE dictionary.quantum-lab` appended to
+# /etc/raddb/dictionary at image build time.
+#
+# Vendor ID 99999 is private/lab-use (NOT IANA-allocated). Do not use in
+# production without picking a real Private Enterprise Number.
+# =============================================================================
+VENDOR          Quantum-Lab     99999
+
+BEGIN-VENDOR    Quantum-Lab
+ATTRIBUTE       Quantum-Key-Id  1       string
+ATTRIBUTE       Quantum-Key     2       string
+END-VENDOR      Quantum-Lab
+

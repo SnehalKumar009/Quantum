@@ -46,13 +46,35 @@ When run individually, RADIUS must come up first because it owns the
 
 ## Folder map
 
-| Folder       | Component        | Image tag                      | Exposed |
-| ------------ | ---------------- | ------------------------------ | ------- |
-| `RADIUS/`    | FreeRADIUS 3.2.5 | `quantum-lab/radius01:latest`  | udp 1812/1813 |
-| `SERVER/`    | Python TLS srv   | `quantum-lab/server01:latest`  | tcp 8443 |
-| `CLIENT/`    | Python client    | `quantum-lab/client01:latest`  | – (one-shot) |
-| `RADIUS_UI/` | FastAPI web UI   | `quantum-lab/radius-ui:latest` | tcp 8081 |
-| `QConnect/`  | RNG / key store  | `quantum-lab/qconnect:latest`  | tcp 9000 |
+| Folder          | Component         | Image tag                         | Exposed |
+| --------------- | ----------------- | --------------------------------- | ------- |
+| `RADIUS/`       | FreeRADIUS 3.2.5  | `quantum-lab/radius01:latest`     | udp 1812/1813 |
+| `RADIUS_CLIENT/`| FastAPI NAS       | `quantum-lab/radius-client:latest`| tcp 8082 |
+| `SERVER/`       | Python TLS srv    | `quantum-lab/server01:latest`     | tcp 8443 |
+| `CLIENT/`       | Python client     | `quantum-lab/client01:latest`     | – (one-shot) |
+| `RADIUS_UI/`    | FastAPI web UI    | `quantum-lab/radius-ui:latest`    | tcp 8081 |
+| `QConnect/`     | RNG / key store   | `quantum-lab/qconnect:latest`     | tcp 9000 |
+
+## Boot flow
+
+```
+qconnect ─┐                                       ┌─ radius01 (FreeRADIUS)
+          │                                       │
+          │   POST /keys/generate                 │  RADIUS over UDP
+client01 ─┤───────────────────────────────────┐   │
+server01 ─┘                                   ▼   │
+                                       radius-client (NAS)
+                                              │   ▲
+                                              └───┘
+client01 / server01 then call:
+   POST http://radius-client:8082/auth
+     { username, password, KeyId, Key }      (Authorization: Bearer lab-nas-token)
+   → NAS forwards to radius01 with User-Name + User-Password + VSAs
+      Quantum-Key-Id (99999.1) and Quantum-Key (99999.2).
+```
+
+After successful auth, `client01` ↔ `server01` do TLS + quantum exchange +
+AES-GCM as before.
 
 ## QConnect (key distribution)
 

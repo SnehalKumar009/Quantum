@@ -1,11 +1,9 @@
 """
 server01 entrypoint.
 
-    1. Authenticate against RADIUS (radius01)             [Phase 3 - LIVE]
-    2. Build TLS context from auto-generated cert         [Phase 2 - LIVE]
-    3. Accept connections, exchange quantum random        [Phase 4 - LIVE (stub QRNG)]
-    4. Derive SessionKey = SHA-256(QC || QS)              [Phase 5 - LIVE]
-    5. Decrypt client message, send encrypted ack         [Phase 6 - LIVE]
+    1. Register with QConnect            -> (KeyId, Key)
+    2. Authenticate via NAS               -> POST /auth {u,p,KeyId,Key}
+    3. Listen on TLS (8443) and serve quantum/AES-GCM protocol
 """
 from __future__ import annotations
 
@@ -13,7 +11,8 @@ import logging
 import sys
 
 from .config import load_config
-from .radius_auth import RadiusAuthError, authenticate
+from .nas_auth import NasAuthError, authenticate
+from .qconnect_client import QConnectError, register
 from .tls_server import serve_forever
 
 
@@ -32,9 +31,15 @@ def run() -> int:
     log.info("=== server01 starting ===")
 
     try:
-        authenticate(cfg.radius)
-    except RadiusAuthError as e:
-        log.error("RADIUS auth failed: %s", e)
+        my_key = register(cfg.qconnect)
+    except QConnectError as e:
+        log.error("QConnect registration failed: %s", e)
+        return 3
+
+    try:
+        authenticate(cfg.nas, cfg.identity, my_key.key_id, my_key.key)
+    except NasAuthError as e:
+        log.error("NAS auth failed: %s", e)
         return 2
 
     try:

@@ -1,8 +1,15 @@
-# QConnect — simulated RNG / key-distribution service
+# QConnect — RNG / key-distribution service
 
-A small FastAPI service that stands in for the new RNG product. Generates
-key-id/key pairs, persists each one as a file inside the container, and
-serves them by ID over HTTP.
+A small FastAPI service that stands in for the lab's RNG product.
+Generates `KeyId`/`Key` pairs, persists each one as a file inside the
+container (backed by a Docker named volume), and serves them by ID over
+HTTP.
+
+In the current architecture, **`client01` and `server01` register
+themselves with QConnect on boot** to obtain the `(KeyId, Key)` they
+include in their authentication request to the NAS. Anyone else on the
+lab network (including `radius01` via the `qconnect-fetch` helper) can
+also generate or look up keys.
 
 ## API
 
@@ -22,17 +29,29 @@ All key-bearing responses use this shape:
 ```
 
 - `KeyId` — `qkey-` + 12 hex chars from a UUID4.
-- `Key` — `KEY_BYTES` (default 32) random bytes, hex-encoded ⇒ 64 chars.
+- `Key`   — `KEY_BYTES` (default 32) random bytes, hex-encoded -> 64 chars.
+
+`GET /keys` intentionally omits the secret material:
+
+```json
+{ "count": 3, "keys": ["qkey-3f8a91b2c0de", "qkey-771caaff1100", "..."] }
+```
 
 ## Storage
 
 One file per key under `/data/keys/<KeyId>.json`, persisted via the
-`qconnect-data` Docker volume. Survives container restarts/rebuilds.
-
-To wipe all keys:
+`qconnect-data` Docker named volume. Survives container restarts and
+rebuilds. To wipe all keys:
 
 ```bash
-docker compose down -v   # nukes named volumes too
+docker compose down -v   # also removes named volumes
+```
+
+To inspect the underlying files on the Ubuntu host:
+
+```bash
+docker volume inspect quantum-lab_qconnect-data --format '{{ .Mountpoint }}'
+sudo ls -la /var/lib/docker/volumes/quantum-lab_qconnect-data/_data
 ```
 
 ## Configuration (env vars)
@@ -45,43 +64,41 @@ docker compose down -v   # nukes named volumes too
 
 ## Examples
 
-Generate a new key:
+From the Ubuntu host:
 
 ```bash
 curl -s -X POST http://localhost:9000/keys/generate | jq
-# {
-#   "KeyId": "qkey-3f8a91b2c0de",
-#   "Key":   "0a1b2c...ef"
-# }
-```
-
-Fetch it later:
-
-```bash
 curl -s http://localhost:9000/keys/qkey-3f8a91b2c0de | jq
-```
-
-List everything:
-
-```bash
 curl -s http://localhost:9000/keys | jq
 ```
 
-From inside another lab container (e.g. `radius01`, `server01`, `client01`)
-just use the hostname `qconnect`:
+From inside any lab container (no port mapping involved):
 
 ```bash
-curl -s -X POST http://qconnect:9000/keys/generate
-curl -s http://qconnect:9000/keys/qkey-3f8a91b2c0de
+docker exec radius01 curl -s -X POST http://qconnect:9000/keys/generate
+docker exec server01 curl -s http://qconnect:9000/healthz
+```
+
+From `radius01` with auto-append to the keys file:
+
+```bash
+docker exec radius01 qconnect-fetch
 ```
 
 ## Standalone run
 
-`quantum-net` must already exist (created by `RADIUS/docker-compose.yml` or
-the top-level compose). Then:
+`quantum-net` must already exist (created by `RADIUS/docker-compose.yml`
+or the top-level compose). Then:
 
 ```bash
 cd QConnect
 docker compose up --build
 ```
+
+## Notes
+
+- No auth on the API today. For production a shared bearer token would
+  go in front of every endpoint (mirrors what `radius-client` does).
+- The default RNG is `secrets.token_hex` (OS CSPRNG). When the real RNG
+  product is wired in, only `_new_key_hex()` in `app/main.py` changes.
 

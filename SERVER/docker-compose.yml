@@ -10,13 +10,14 @@ services:
     ports:
       - "8443:8443/tcp"
     environment:
-      # ---- RADIUS settings ---------------------------------------------------
-      RADIUS_HOST: radius01
-      RADIUS_AUTH_PORT: "1812"
-      RADIUS_SECRET: testing123
-      RADIUS_USERNAME: server01
-      RADIUS_PASSWORD: serverPassword
-      RADIUS_NAS_IDENTIFIER: server01
+      # ---- Identity ----------------------------------------------------------
+      USERNAME: server01
+      PASSWORD: serverPassword
+      # ---- NAS (radius-client) ----------------------------------------------
+      NAS_URL: http://radius-client:8082
+      NAS_SHARED_TOKEN: lab-nas-token
+      # ---- QConnect (registration on boot) ----------------------------------
+      QCONNECT_URL: http://qconnect:9000
       # ---- TLS listener -----------------------------------------------------
       LISTEN_HOST: "0.0.0.0"
       LISTEN_PORT: "8443"
