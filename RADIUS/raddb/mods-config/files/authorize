@@ -1,0 +1,25 @@
+# =============================================================================
+# authorize - User accounts for the Quantum Secure Client/Server Lab
+#
+# Format (FreeRADIUS 3 "files" module):
+#   <username>   Cleartext-Password := "<password>"
+#       Reply-Attribute = value,
+#       Reply-Attribute = value
+#
+# Initial accounts (per Architecture.md):
+#   client01 / clientPassword
+#   server01 / serverPassword
+# =============================================================================
+
+client01    Cleartext-Password := "clientPassword"
+            Reply-Message := "Welcome client01",
+            Service-Type  := Framed-User
+
+server01    Cleartext-Password := "serverPassword"
+            Reply-Message := "Welcome server01",
+            Service-Type  := Framed-User
+
+# Optional test account used by `radtest` to confirm the server is alive.
+testuser    Cleartext-Password := "testpw"
+            Reply-Message := "Hello, test user"
+

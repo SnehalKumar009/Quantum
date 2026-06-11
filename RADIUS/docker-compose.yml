@@ -1,0 +1,21 @@
+services:
+  radius01:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantum-lab/radius01:latest
+    container_name: radius01
+    hostname: radius01
+    restart: unless-stopped
+    ports:
+      # Expose to the host for local testing with radtest / radclient.
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+    networks:
+      - quantum-net
+
+networks:
+  quantum-net:
+    name: quantum-net
+    driver: bridge
+

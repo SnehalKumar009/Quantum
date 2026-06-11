@@ -1,0 +1,33 @@
+services:
+  client01:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantum-lab/client01:latest
+    container_name: client01
+    hostname: client01
+    # The client is a one-shot workflow for now (auth + future TLS/quantum).
+    # Keep it from auto-restarting on success.
+    restart: "no"
+    environment:
+      # ---- RADIUS settings ---------------------------------------------------
+      RADIUS_HOST: radius01
+      RADIUS_AUTH_PORT: "1812"
+      RADIUS_SECRET: testing123
+      RADIUS_USERNAME: client01
+      RADIUS_PASSWORD: clientPassword
+      RADIUS_NAS_IDENTIFIER: client01
+      # ---- App server settings (used in later phases) -----------------------
+      SERVER_HOST: server01
+      SERVER_PORT: "8443"
+      # ---- Logging ----------------------------------------------------------
+      LOG_LEVEL: INFO
+    networks:
+      - quantum-net
+    # The RADIUS server lives in ../RADIUS/docker-compose.yml and creates this
+    # external network. We just attach to it here.
+networks:
+  quantum-net:
+    name: quantum-net
+    external: true
+

@@ -1,0 +1,4 @@
+# Core deps for the Quantum Secure Lab client
+pyrad==2.4                # RADIUS protocol (Access-Request, Access-Accept)
+cryptography==43.0.1      # AES-GCM session encryption, hashing, TLS helpers
+

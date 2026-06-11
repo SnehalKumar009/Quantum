@@ -1,0 +1,6 @@
+# Ignore local-only files
+*.log
+*.bak
+*.swp
+.DS_Store
+
