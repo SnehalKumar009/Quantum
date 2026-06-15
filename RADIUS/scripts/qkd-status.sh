@@ -26,6 +26,10 @@
 # =============================================================================
 set -u
 
+# rlm_exec strips most env vars when FR forks; re-source the QKD_* values
+# written by the container entrypoint (no-op outside the radius image).
+[ -r /etc/qkd-env ] && . /etc/qkd-env
+
 PEER_ARG="${1:-}"
 LOGFILE="/tmp/qkd-status.log"
 TS="$(date '+%Y-%m-%d %H:%M:%S')"

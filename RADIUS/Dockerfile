@@ -95,6 +95,19 @@ EXPOSE 1812/udp 1813/udp
 RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -u' \
+    '# Persist the QKD_* env to /etc/qkd-env so children spawned by FreeRADIUS' \
+    '# (which strips most of the env) can re-source them. Values here are URLs,' \
+    '# file paths and UUIDs -- never contain quotes -- so plain quoting works.' \
+    'umask 022' \
+    ': > /etc/qkd-env' \
+    'echo "# Auto-generated at container start by radius-entrypoint." >> /etc/qkd-env' \
+    'for v in QKD_KME_URL QKD_CERT QKD_KEY QKD_CACERT QKD_INFO_JSON QKD_SAE_ID QKD_SAE_ALIAS QKD_PEER_SAE_ID QKD_PEER_SAE_ALIAS; do' \
+    '    eval "val=\${$v-}"' \
+    '    echo "export $v=\"$val\"" >> /etc/qkd-env' \
+    'done' \
+    'chmod 0644 /etc/qkd-env' \
+    'echo "[entrypoint] /etc/qkd-env:"' \
+    'sed -n "s/^export //p" /etc/qkd-env' \
     'echo "[entrypoint] ======== qConnect KME boot probe ========"' \
     'if [ -x /usr/local/bin/qkd-status ] && [ -n "${QKD_KME_URL:-}" ]; then' \
     '    /usr/local/bin/qkd-status || true' \

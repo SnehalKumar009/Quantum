@@ -23,6 +23,12 @@
 # =============================================================================
 set -u
 
+# FreeRADIUS's rlm_exec strips most of the parent env when it forks children,
+# so the QKD_* vars set by docker-compose may not be visible here. The radius
+# entrypoint persists them to /etc/qkd-env at container boot — source it now
+# (no-op if it doesn't exist).
+[ -r /etc/qkd-env ] && . /etc/qkd-env
+
 MASTER_SAE_ID="${1:-}"
 KEY_ID="${2:-}"
 LOGFILE="/tmp/qkd-dec-key.log"

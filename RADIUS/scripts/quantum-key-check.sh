@@ -27,6 +27,10 @@
 # =============================================================================
 set -u
 
+# rlm_exec strips most env vars — re-source the QKD_* values written by the
+# container entrypoint so the trace log shows real values, not <unset>.
+[ -r /etc/qkd-env ] && . /etc/qkd-env
+
 KEY_ID="${1:-}"
 MASTER_SAE_ID="${2:-}"
 LOGFILE="/tmp/quantum-key-check.log"
