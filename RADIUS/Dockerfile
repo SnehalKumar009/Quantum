@@ -54,6 +54,12 @@ COPY scripts/qkd-status.sh /usr/local/bin/qkd-status
 RUN sed -i 's/\r$//' /usr/local/bin/qkd-status \
  && chmod +x /usr/local/bin/qkd-status
 
+# Real qConnect (ETSI 014) dec_keys retriever over mTLS. Invoked from
+# quantum-key-check to authenticate by *successful key fetch* alone.
+COPY scripts/qkd-dec-key.sh /usr/local/bin/qkd-dec-key
+RUN sed -i 's/\r$//' /usr/local/bin/qkd-dec-key \
+ && chmod +x /usr/local/bin/qkd-dec-key
+
 COPY raddb/policy.d/quantum-key-check /etc/raddb/policy.d/quantum-key-check
 RUN sed -i 's/\r$//' /etc/raddb/policy.d/quantum-key-check
 

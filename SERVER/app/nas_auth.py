@@ -22,7 +22,7 @@ def authenticate(
     nas: NasConfig,
     identity: IdentityConfig,
     key_id: str,
-    key_hex: str,
+    master_sae_id: str,
     *,
     timeout: float = NAS_HTTP_TIMEOUT,
 ) -> str:
@@ -32,14 +32,16 @@ def authenticate(
         headers["Authorization"] = f"Bearer {nas.shared_token}"
 
     payload = {
-        "username": identity.username,
-        "password": identity.password,
-        "KeyId": key_id,
-        "Key": key_hex,
+        "username":    identity.username,
+        "password":    identity.password,
+        "KeyId":       key_id,
+        "MasterSaeId": master_sae_id,
     }
 
-    logger.info("Authenticating via NAS %s as %s (KeyId=%s Key=%s)",
-                url, identity.username, key_id, key_hex)
+    logger.info(
+        "Authenticating via NAS %s as %s (KeyId=%s MasterSaeId=%s)",
+        url, identity.username, key_id, master_sae_id,
+    )
 
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=timeout)

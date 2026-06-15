@@ -2,17 +2,20 @@
 radius-client (NAS) — accepts HTTP /auth from supplicants, forwards as a
 RADIUS Access-Request to radius01.
 
-Supplicants send four fields:
-    { "username": "...", "password": "...", "KeyId": "...", "Key": "..." }
+Supplicants send these fields:
+    { "username": "...", "password": "...",
+      "KeyId": "...",         # required for QKD-authenticated users
+      "MasterSaeId": "..." }  # the SAE that called enc_keys for this key
 
 These are mapped onto RADIUS attributes:
-    User-Name          -> username
-    User-Password      -> password (encrypted with the shared RADIUS secret)
-    Quantum-Key-Id     -> KeyId   (Vendor-Specific, vendor 99999, attr 1)
-    Quantum-Key        -> Key     (Vendor-Specific, vendor 99999, attr 2)
+    User-Name              -> username
+    User-Password          -> password (encrypted with the shared RADIUS secret)
+    Quantum-Key-Id         -> KeyId          (VSA, vendor 99999, attr 1)
+    Quantum-Master-SAE-ID  -> MasterSaeId    (VSA, vendor 99999, attr 3)
 
-The RADIUS server today authenticates on username/password only; the VSAs
-are transported and logged, ready for future policy.
+The RADIUS server uses the two VSAs to call qConnect's ETSI 014 `dec_keys`
+endpoint and authenticates by *successful retrieval*. The actual key material
+never travels in the RADIUS packet.
 """
 from __future__ import annotations
 
@@ -69,7 +72,7 @@ class AuthRequest(BaseModel):
     username: str = Field(min_length=1, max_length=128)
     password: str = Field(min_length=1, max_length=512)
     KeyId: str = Field(min_length=1, max_length=128)
-    Key:   str = Field(min_length=1, max_length=512)
+    MasterSaeId: str = Field(min_length=1, max_length=128)
 
 
 class AuthResponse(BaseModel):
@@ -104,12 +107,12 @@ def _send_access_request(req_body: AuthRequest) -> AuthResponse:
     )
     req["User-Password"] = req.PwCrypt(req_body.password)
     # VSAs from the Quantum-Lab vendor dictionary.
-    req["Quantum-Key-Id"] = req_body.KeyId
-    req["Quantum-Key"]    = req_body.Key
+    req["Quantum-Key-Id"]        = req_body.KeyId
+    req["Quantum-Master-SAE-ID"] = req_body.MasterSaeId
 
     log.info(
-        "Forwarding Access-Request: user=%s KeyId=%s Key=%s (len=%d) -> %s:%d",
-        req_body.username, req_body.KeyId, req_body.Key, len(req_body.Key),
+        "Forwarding Access-Request: user=%s KeyId=%s MasterSaeId=%s -> %s:%d",
+        req_body.username, req_body.KeyId, req_body.MasterSaeId,
         RADIUS_HOST, RADIUS_AUTH_PORT,
     )
 

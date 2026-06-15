@@ -1,35 +1,33 @@
 # =============================================================================
-# quantum_key_check - Enforce QConnect-issued (KeyId, Key) at auth time.
+# quantum_key_check - Verify a QKD key by *fetching* it from qConnect.
 #
 # Called from sites-enabled/default { authorize { ... } } before pap.
 #
-# Behavior (fail-closed):
-#   - Only enforced for User-Name in { client01, server01 }. Other users
-#     (testuser, radius-ui smoke tests, radtest from localhost) pass through
-#     unchanged so the existing test workflows keep working.
-#   - For an enforced user:
-#       * Missing Quantum-Key-Id or Quantum-Key VSA -> Access-Reject.
-#       * /usr/local/bin/quantum-key-check returns anything other than "OK"
-#         (KeyId not found, QConnect unreachable, mismatch) -> Access-Reject.
-#       * On "OK" we continue, and the normal username/password check
-#         (files + pap) decides Access-Accept / Access-Reject.
+# New model (vs the old stub-based KeyId+Key compare):
+#   - Supplicant (server01) calls enc_keys on qConnect, gets (key_id, key).
+#   - Supplicant POSTs {username, password, KeyId, MasterSaeId} to its NAS.
+#   - NAS forwards Access-Request with Quantum-Key-Id and Quantum-Master-SAE-ID.
+#   - This policy invokes /usr/local/bin/quantum-key-check with both VSAs.
+#     The helper calls qConnect's dec_keys over mTLS.
+#       * Successful retrieval -> "OK"  (we don't compare anything)
+#       * Any failure          -> "FAIL:<reason>"
 #
-# The helper script reads QCONNECT_URL from the environment (default
-# http://qconnect:9000). It is injected into FreeRADIUS via the
-# Dockerfile.
+# Scope: only enforced for User-Name == "server01" right now. The legacy users
+# (client01, testuser, radius-ui smoke tests) pass through unchanged.
+# Extend this list once client01 is migrated to the same flow.
 # =============================================================================
 quantum_key_check {
-    if (&User-Name == "client01" || &User-Name == "server01") {
-        if (!&Quantum-Key-Id || !&Quantum-Key) {
+    if (&User-Name == "server01") {
+        if (!&Quantum-Key-Id || !&Quantum-Master-SAE-ID) {
             update reply {
-                Reply-Message := "Quantum-Key VSAs missing"
+                Reply-Message := "Quantum VSAs missing (need Key-Id + Master-SAE-ID)"
             }
             reject
         }
         else {
-            if ("%{exec:/usr/local/bin/quantum-key-check %{Quantum-Key-Id} %{Quantum-Key}}" != "OK") {
+            if ("%{exec:/usr/local/bin/quantum-key-check %{Quantum-Key-Id} %{Quantum-Master-SAE-ID}}" != "OK") {
                 update reply {
-                    Reply-Message := "Quantum-Key validation failed"
+                    Reply-Message := "Quantum-Key dec_keys retrieval failed"
                 }
                 reject
             }

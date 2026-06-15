@@ -31,6 +31,18 @@ class QConnectConfig:
 
 
 @dataclass(frozen=True)
+class QkdConfig:
+    """Real qConnect KME settings (ETSI GS QKD 014, mTLS)."""
+    kme_url: str
+    cert_file: str
+    key_file: str
+    ca_file: str
+    info_json: str
+    peer_sae_id: str       # slave SAE this server requests keys for (radius01)
+    sae_id: str            # optional override; usually derived from info.json
+
+
+@dataclass(frozen=True)
 class TlsListenerConfig:
     host: str
     port: int
@@ -43,6 +55,7 @@ class AppConfig:
     identity: IdentityConfig
     nas: NasConfig
     qconnect: QConnectConfig
+    qkd: QkdConfig
     listener: TlsListenerConfig
     log_level: str
 
@@ -60,6 +73,15 @@ def load_config() -> AppConfig:
         ),
         qconnect=QConnectConfig(
             url=_env("QCONNECT_URL", "http://qconnect:9000").rstrip("/"),
+        ),
+        qkd=QkdConfig(
+            kme_url=_env("QKD_KME_URL", "").rstrip("/"),
+            cert_file=_env("QKD_CERT",   "/etc/qkd/sae-server01.crt.pem"),
+            key_file=_env("QKD_KEY",     "/etc/qkd/sae-server01.key.pem"),
+            ca_file=_env("QKD_CACERT",   "/etc/qkd/sae-server01.trusted_cas.pem"),
+            info_json=_env("QKD_INFO_JSON", "/etc/qkd/sae-server01.info.json"),
+            peer_sae_id=_env("QKD_PEER_SAE_ID", ""),
+            sae_id=_env("QKD_SAE_ID", ""),
         ),
         listener=TlsListenerConfig(
             host=_env("LISTEN_HOST", "0.0.0.0"),

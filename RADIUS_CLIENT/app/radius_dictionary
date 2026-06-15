@@ -22,7 +22,8 @@ VALUE   Service-Type    Framed-User         2
 VENDOR          Quantum-Lab     99999
 
 BEGIN-VENDOR    Quantum-Lab
-ATTRIBUTE       Quantum-Key-Id  1       string
-ATTRIBUTE       Quantum-Key     2       string
+ATTRIBUTE       Quantum-Key-Id          1       string
+ATTRIBUTE       Quantum-Key             2       string
+ATTRIBUTE       Quantum-Master-SAE-ID   3       string
 END-VENDOR      Quantum-Lab
 
