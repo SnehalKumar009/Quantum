@@ -81,6 +81,10 @@ EXPOSE 1812/udp 1813/udp
 # Runs `qkd-status` once before radiusd takes over so that `docker logs radius01`
 # shows the ETSI 014 mTLS round-trip immediately at boot, not only on the first
 # auth request. Failure is non-fatal — radiusd starts regardless.
+#
+# NOTE: the freeradius base image ships the daemon as `freeradius` (with
+# `radiusd` sometimes only as a symlink), and /bin/sh's PATH inside this
+# script may not include its install dir. So we resolve the binary explicitly.
 # -----------------------------------------------------------------------------
 RUN printf '%s\n' \
     '#!/bin/sh' \
@@ -91,8 +95,16 @@ RUN printf '%s\n' \
     'else' \
     '    echo "[entrypoint] qkd-status not runnable or QKD_KME_URL unset; skipping"' \
     'fi' \
-    'echo "[entrypoint] ======== handing off to radiusd ========"' \
-    'exec radiusd -X' \
+    'RADIUSD_BIN="$(command -v freeradius 2>/dev/null || command -v radiusd 2>/dev/null || true)"' \
+    'for cand in /usr/sbin/freeradius /usr/sbin/radiusd /opt/freeradius/sbin/freeradius /opt/freeradius/sbin/radiusd; do' \
+    '    [ -z "$RADIUSD_BIN" ] && [ -x "$cand" ] && RADIUSD_BIN="$cand"' \
+    'done' \
+    'if [ -z "$RADIUSD_BIN" ]; then' \
+    '    echo "[entrypoint] FATAL: cannot locate freeradius/radiusd binary" >&2' \
+    '    exit 127' \
+    'fi' \
+    'echo "[entrypoint] ======== handing off to $RADIUSD_BIN -X ========"' \
+    'exec "$RADIUSD_BIN" -X' \
     > /usr/local/bin/radius-entrypoint \
  && chmod +x /usr/local/bin/radius-entrypoint
 

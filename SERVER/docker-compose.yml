@@ -21,7 +21,7 @@ services:
       # ---- Real qConnect (ETSI GS QKD 014) over mTLS ------------------------
       # SAE registered on qConnect VM as alias "sae-server01".
       # Peer SAE is "sae-client01" — fill its UUID into QKD_PEER_SAE_ID.
-      QKD_KME_URL:        "https://192.168.10.233"
+      QKD_KME_URL:        "https://192.168.10.233:50555"
       QKD_SAE_ALIAS:      "sae-server01"
       QKD_PEER_SAE_ALIAS: "sae-client01"
       QKD_PEER_SAE_ID:    ""    # e.g. "62391013-687d-11f1-b7ff-525400b8fb7b" style UUID

@@ -14,7 +14,11 @@ services:
       QCONNECT_URL: http://qconnect:9000
       # ---- Real qConnect (ETSI GS QKD 014) over mTLS ------------------------
       # SAE registered on qConnect VM as alias "sae-radius01".
-      QKD_KME_URL:    "https://192.168.10.233"
+      # Port comes from the qConnect ETSI proxy listener.
+      # On the qConnect VM: `ss -tlnp | grep etsi-proxy`
+      #   *:50555  -> ETSI GS QKD 014 (REST, mTLS)   <-- this is what SAEs use
+      #   *:50556  -> ETSI GS QKD 004 (streaming)
+      QKD_KME_URL:    "https://192.168.10.233:50555"
       QKD_SAE_ALIAS:  "sae-radius01"
       QKD_CERT:       "/etc/qkd/sae-radius01.crt.pem"
       QKD_KEY:        "/etc/qkd/sae-radius01.key.pem"

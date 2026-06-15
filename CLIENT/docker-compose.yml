@@ -21,7 +21,7 @@ services:
       # SAE registered on qConnect VM as alias "sae-client01".
       # Peer SAE is "sae-server01" — fill its UUID into QKD_PEER_SAE_ID once
       # you have it (cat /etc/qkd/.. on server01 host, or check info.json).
-      QKD_KME_URL:        "https://192.168.10.233"
+      QKD_KME_URL:        "https://192.168.10.233:50555"
       QKD_SAE_ALIAS:      "sae-client01"
       QKD_PEER_SAE_ALIAS: "sae-server01"
       QKD_PEER_SAE_ID:    ""    # e.g. "40a45fc8-687e-11f1-b7ff-525400b8fb7b"
