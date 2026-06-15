@@ -19,5 +19,18 @@ else
     echo "[entrypoint] Reusing existing TLS cert at $CERT_FILE"
 fi
 
+# -----------------------------------------------------------------------------
+# Proof 3: qConnect KME smoke probe over mTLS at boot.
+# Best-effort — never blocks startup. Output goes to stdout so it shows up in
+# `docker logs server01` and to /tmp/qkd-status.log for later inspection.
+# -----------------------------------------------------------------------------
+echo "[entrypoint] ======== qConnect KME boot probe (Proof 3) ========"
+if [ -x /usr/local/bin/qkd-status ] && [ -n "${QKD_KME_URL:-}" ]; then
+    /usr/local/bin/qkd-status || true
+else
+    echo "[entrypoint] qkd-status not runnable or QKD_KME_URL unset; skipping"
+fi
+echo "[entrypoint] ======== handing off to: $* ========"
+
 exec "$@"
 

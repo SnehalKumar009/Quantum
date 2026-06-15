@@ -15,7 +15,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl ca-certificates openssl \
+ && apt-get install -y --no-install-recommends curl ca-certificates openssl jq \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -23,10 +23,13 @@ RUN pip install -r requirements.txt
 
 COPY app/ ./app/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# Real qConnect (ETSI 014) status probe over mTLS. Invoked from entrypoint.sh
+# as a best-effort boot-time trace step (Proof 3 of SAE registration).
+COPY scripts/qkd-status.sh /usr/local/bin/qkd-status
 # Strip any CRLF that Windows editors / git autocrlf may have introduced,
 # otherwise the shebang fails inside the Linux container.
-RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
- && chmod +x /usr/local/bin/entrypoint.sh \
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh /usr/local/bin/qkd-status \
+ && chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/qkd-status \
  && mkdir -p /app/certs
 
 RUN useradd --create-home --shell /bin/bash appuser \

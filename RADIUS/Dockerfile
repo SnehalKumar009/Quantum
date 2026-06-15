@@ -76,9 +76,29 @@ RUN target="$(readlink -f /etc/raddb/sites-enabled/default)" \
 # Standard RADIUS ports
 EXPOSE 1812/udp 1813/udp
 
+# -----------------------------------------------------------------------------
+# Startup-time qConnect KME smoke probe.
+# Runs `qkd-status` once before radiusd takes over so that `docker logs radius01`
+# shows the ETSI 014 mTLS round-trip immediately at boot, not only on the first
+# auth request. Failure is non-fatal — radiusd starts regardless.
+# -----------------------------------------------------------------------------
+RUN printf '%s\n' \
+    '#!/bin/sh' \
+    'set -u' \
+    'echo "[entrypoint] ======== qConnect KME boot probe ========"' \
+    'if [ -x /usr/local/bin/qkd-status ] && [ -n "${QKD_KME_URL:-}" ]; then' \
+    '    /usr/local/bin/qkd-status || true' \
+    'else' \
+    '    echo "[entrypoint] qkd-status not runnable or QKD_KME_URL unset; skipping"' \
+    'fi' \
+    'echo "[entrypoint] ======== handing off to radiusd ========"' \
+    'exec radiusd -X' \
+    > /usr/local/bin/radius-entrypoint \
+ && chmod +x /usr/local/bin/radius-entrypoint
+
 # Run in foreground with logging to stdout so `docker logs` works.
-# -X = full debug. Switch to -f for production-quiet mode.
-CMD ["radiusd", "-X"]
+# Entrypoint first probes qConnect, then exec's radiusd -X.
+CMD ["/usr/local/bin/radius-entrypoint"]
 
 
 

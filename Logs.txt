@@ -1,0 +1,761 @@
+radius01    | FreeRADIUS Version 3.2.5
+radius01    | Copyright (C) 1999-2023 The FreeRADIUS server project and contributors
+radius01    | There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+radius01    | PARTICULAR PURPOSE
+radius01    | You may redistribute copies of FreeRADIUS under the terms of the
+radius01    | GNU General Public License
+radius01    | For more information about these matters, see the file named COPYRIGHT
+radius01    | Starting - reading configuration files ...
+radius01    | including dictionary file /usr/share/freeradius/dictionary
+radius01    | including dictionary file /usr/share/freeradius/dictionary.dhcp
+radius01    | including dictionary file /usr/share/freeradius/dictionary.vqp
+radius01    | including dictionary file /etc/freeradius/dictionary
+radius01    | including configuration file /etc/freeradius/radiusd.conf
+radius01    | including configuration file /etc/freeradius/proxy.conf
+radius01    | including configuration file /etc/freeradius/clients.conf
+radius01    | including files in directory /etc/freeradius/mods-enabled/
+radius01    | including configuration file /etc/freeradius/mods-enabled/always
+radius01    | including configuration file /etc/freeradius/mods-enabled/soh
+radius01    | including configuration file /etc/freeradius/mods-enabled/eap
+radius01    | including configuration file /etc/freeradius/mods-enabled/echo
+radius01    | including configuration file /etc/freeradius/mods-enabled/preprocess
+radius01    | including configuration file /etc/freeradius/mods-enabled/digest
+radius01    | including configuration file /etc/freeradius/mods-enabled/detail.log
+radius01    | including configuration file /etc/freeradius/mods-enabled/unpack
+radius01    | including configuration file /etc/freeradius/mods-enabled/radutmp
+radius01    | including configuration file /etc/freeradius/mods-enabled/attr_filter
+radius01    | including configuration file /etc/freeradius/mods-enabled/pap
+radius01    | including configuration file /etc/freeradius/mods-enabled/realm
+radius01    | including configuration file /etc/freeradius/mods-enabled/logintime
+radius01    | including configuration file /etc/freeradius/mods-enabled/sradutmp
+radius01    | including configuration file /etc/freeradius/mods-enabled/replicate
+radius01    | including configuration file /etc/freeradius/mods-enabled/totp
+radius01    | including configuration file /etc/freeradius/mods-enabled/expr
+radius01    | including configuration file /etc/freeradius/mods-enabled/dynamic_clients
+radius01    | including configuration file /etc/freeradius/mods-enabled/exec
+radius01    | including configuration file /etc/freeradius/mods-enabled/ntlm_auth
+radius01    | including configuration file /etc/freeradius/mods-enabled/mschap
+radius01    | including configuration file /etc/freeradius/mods-enabled/utf8
+radius01    | including configuration file /etc/freeradius/mods-enabled/detail
+radius01    | including configuration file /etc/freeradius/mods-enabled/files
+radius01    | including configuration file /etc/freeradius/mods-enabled/passwd
+radius01    | including configuration file /etc/freeradius/mods-enabled/expiration
+radius01    | including configuration file /etc/freeradius/mods-enabled/linelog
+radius01    | including configuration file /etc/freeradius/mods-enabled/unix
+radius01    | including configuration file /etc/freeradius/mods-enabled/date
+radius01    | including configuration file /etc/freeradius/mods-enabled/chap
+radius01    | including files in directory /etc/freeradius/policy.d/
+radius01    | including configuration file /etc/freeradius/policy.d/eap
+radius01    | including configuration file /etc/freeradius/policy.d/dhcp
+radius01    | including configuration file /etc/freeradius/policy.d/abfab-tr
+radius01    | including configuration file /etc/freeradius/policy.d/cui
+radius01    | including configuration file /etc/freeradius/policy.d/rfc7542
+radius01    | including configuration file /etc/freeradius/policy.d/filter
+radius01    | including configuration file /etc/freeradius/policy.d/control
+radius01    | including configuration file /etc/freeradius/policy.d/operator-name
+radius01    | including configuration file /etc/freeradius/policy.d/accounting
+radius01    | including configuration file /etc/freeradius/policy.d/debug
+radius01    | including configuration file /etc/freeradius/policy.d/moonshot-targeted-ids
+radius01    | including configuration file /etc/freeradius/policy.d/canonicalization
+radius01    | including configuration file /etc/freeradius/policy.d/quantum-key-check
+radius01    | including files in directory /etc/freeradius/sites-enabled/
+radius01    | including configuration file /etc/freeradius/sites-enabled/default
+radius01    | including configuration file /etc/freeradius/sites-enabled/inner-tunnel
+radius01    | main {
+radius01    |  security {
+radius01    |   user = "freerad"
+radius01    |   group = "freerad"
+radius01    |   allow_core_dumps = no
+radius01    |  }
+radius01    |   name = "freeradius"
+radius01    |   prefix = "/usr"
+radius01    |   localstatedir = "/var"
+radius01    |   logdir = "/var/log/freeradius"
+radius01    |   run_dir = "/var/run/freeradius"
+radius01    | }
+radius01    | main {
+radius01    |   name = "freeradius"
+radius01    |   prefix = "/usr"
+radius01    |   localstatedir = "/var"
+radius01    |   sbindir = "/usr/sbin"
+radius01    |   logdir = "/var/log/freeradius"
+radius01    |   run_dir = "/var/run/freeradius"
+radius01    |   libdir = "/usr/lib/freeradius"
+radius01    |   radacctdir = "/var/log/freeradius/radacct"
+radius01    |   hostname_lookups = no
+radius01    |   max_request_time = 30
+radius01    |   proxy_dedup_window = 1
+radius01    |   cleanup_delay = 5
+radius01    |   max_requests = 16384
+radius01    |   max_fds = 512
+radius01    |   postauth_client_lost = no
+radius01    |   pidfile = "/var/run/freeradius/freeradius.pid"
+radius01    |   checkrad = "/usr/sbin/checkrad"
+radius01    |   debug_level = 0
+radius01    |   proxy_requests = yes
+radius01    |  log {
+radius01    |   stripped_names = no
+radius01    |   auth = no
+radius01    |   auth_badpass = no
+radius01    |   auth_goodpass = no
+radius01    |   colourise = yes
+radius01    |   msg_denied = "You are already logged in - access denied"
+radius01    |  }
+radius01    |  resources {
+radius01    |  }
+radius01    |  security {
+radius01    |   max_attributes = 200
+radius01    |   reject_delay = 1.000000
+radius01    |   status_server = yes
+radius01    |   require_message_authenticator = "auto"
+radius01    |   limit_proxy_state = "auto"
+radius01    |  }
+radius01    | }
+radius01    | radiusd: #### Loading Realms and Home Servers ####
+radius01    |  proxy server {
+radius01    |   retry_delay = 5
+radius01    |   retry_count = 3
+radius01    |   default_fallback = no
+radius01    |   dead_time = 120
+radius01    |   wake_all_if_all_dead = no
+radius01    |  }
+radius01    |  home_server localhost {
+radius01    |   nonblock = no
+radius01    |   ipaddr = 127.0.0.1
+radius01    |   port = 1812
+radius01    |   type = "auth"
+radius01    |   secret = <<< secret >>>
+radius01    |   response_window = 20.000000
+radius01    |   response_timeouts = 1
+radius01    |   max_outstanding = 65536
+radius01    |   zombie_period = 40
+radius01    |   status_check = "status-server"
+radius01    |   ping_interval = 30
+radius01    |   check_interval = 30
+radius01    |   check_timeout = 4
+radius01    |   num_answers_to_alive = 3
+radius01    |   revive_interval = 120
+radius01    |   limit {
+radius01    |           max_connections = 16
+radius01    |           max_requests = 0
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 0
+radius01    |   }
+radius01    |   coa {
+radius01    |           irt = 2
+radius01    |           mrt = 16
+radius01    |           mrc = 5
+radius01    |           mrd = 30
+radius01    |   }
+radius01    |  }
+radius01    |  home_server_pool my_auth_failover {
+radius01    |   type = fail-over
+radius01    |   home_server = localhost
+radius01    |  }
+radius01    |  realm example.com {
+radius01    |   auth_pool = my_auth_failover
+radius01    |  }
+radius01    |  realm LOCAL {
+radius01    |  }
+radius01    | radiusd: #### Loading Clients ####
+radius01    |  client quantum-net {
+radius01    |   ipaddr = 0.0.0.0
+radius01    |   netmask = 0
+radius01    |   require_message_authenticator = "no"
+radius01    |   secret = <<< secret >>>
+radius01    |   shortname = "quantum-net-nas"
+radius01    |   nas_type = "other"
+radius01    |   limit {
+radius01    |           max_connections = 16
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 30
+radius01    |   }
+radius01    |  }
+radius01    |  client localhost {
+radius01    |   ipaddr = 127.0.0.1
+radius01    |   require_message_authenticator = "no"
+radius01    |   secret = <<< secret >>>
+radius01    |   nas_type = "other"
+radius01    |   limit {
+radius01    |           max_connections = 16
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 30
+radius01    |   }
+radius01    |  }
+radius01    | Debug state unknown (cap_sys_ptrace capability not set)
+radius01    | systemd watchdog is disabled
+radius01    |  # Creating Auth-Type = mschap
+radius01    |  # Creating Auth-Type = digest
+radius01    |  # Creating Auth-Type = eap
+radius01    |  # Creating Auth-Type = PAP
+radius01    |  # Creating Auth-Type = CHAP
+radius01    |  # Creating Auth-Type = MS-CHAP
+radius01    |  # Creating Autz-Type = New-TLS-Connection
+radius01    | radiusd: #### Instantiating modules ####
+radius01    |  modules {
+radius01    |   # Loaded module rlm_always
+radius01    |   # Loading module "reject" from file /etc/freeradius/mods-enabled/always
+radius01    |   always reject {
+radius01    |           rcode = "reject"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "fail" from file /etc/freeradius/mods-enabled/always
+radius01    |   always fail {
+radius01    |           rcode = "fail"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "ok" from file /etc/freeradius/mods-enabled/always
+radius01    |   always ok {
+radius01    |           rcode = "ok"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "handled" from file /etc/freeradius/mods-enabled/always
+radius01    |   always handled {
+radius01    |           rcode = "handled"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "invalid" from file /etc/freeradius/mods-enabled/always
+radius01    |   always invalid {
+radius01    |           rcode = "invalid"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "userlock" from file /etc/freeradius/mods-enabled/always
+radius01    |   always userlock {
+radius01    |           rcode = "userlock"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "notfound" from file /etc/freeradius/mods-enabled/always
+radius01    |   always notfound {
+radius01    |           rcode = "notfound"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "noop" from file /etc/freeradius/mods-enabled/always
+radius01    |   always noop {
+radius01    |           rcode = "noop"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loading module "updated" from file /etc/freeradius/mods-enabled/always
+radius01    |   always updated {
+radius01    |           rcode = "updated"
+radius01    |           simulcount = 0
+radius01    |           mpp = no
+radius01    |   }
+radius01    |   # Loaded module rlm_soh
+radius01    |   # Loading module "soh" from file /etc/freeradius/mods-enabled/soh
+radius01    |   soh {
+radius01    |           dhcp = yes
+radius01    |   }
+radius01    |   # Loaded module rlm_eap
+radius01    |   # Loading module "eap" from file /etc/freeradius/mods-enabled/eap
+radius01    |   eap {
+radius01    |           default_eap_type = "md5"
+radius01    |           timer_expire = 60
+radius01    |           max_eap_type = 52
+radius01    |           ignore_unknown_eap_types = no
+radius01    |           cisco_accounting_username_bug = no
+radius01    |           max_sessions = 16384
+radius01    |           dedup_key = ""
+radius01    |   }
+radius01    |   # Loaded module rlm_exec
+radius01    |   # Loading module "echo" from file /etc/freeradius/mods-enabled/echo
+radius01    |   exec echo {
+radius01    |           wait = yes
+radius01    |           program = "/bin/echo %{User-Name}"
+radius01    |           input_pairs = "request"
+radius01    |           output_pairs = "reply"
+radius01    |           shell_escape = yes
+radius01    |   }
+radius01    |   # Loaded module rlm_preprocess
+radius01    |   # Loading module "preprocess" from file /etc/freeradius/mods-enabled/preprocess
+radius01    |   preprocess {
+radius01    |           huntgroups = "/etc/freeradius/mods-config/preprocess/huntgroups"
+radius01    |           hints = "/etc/freeradius/mods-config/preprocess/hints"
+radius01    |           with_ascend_hack = no
+radius01    |           ascend_channels_per_line = 23
+radius01    |           with_ntdomain_hack = no
+radius01    |           with_specialix_jetstream_hack = no
+radius01    |           with_cisco_vsa_hack = no
+radius01    |           with_alvarion_vsa_hack = no
+radius01    |   }
+radius01    |   # Loaded module rlm_digest
+radius01    |   # Loading module "digest" from file /etc/freeradius/mods-enabled/digest
+radius01    |   # Loaded module rlm_detail
+radius01    |   # Loading module "auth_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   detail auth_log {
+radius01    |           filename = "/var/log/freeradius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/auth-detail-%Y%m%d"
+radius01    |           header = "%t"
+radius01    |           permissions = 384
+radius01    |           locking = no
+radius01    |           dates_as_integer = no
+radius01    |           escape_filenames = no
+radius01    |           log_packet_header = no
+radius01    |   }
+radius01    |   # Loading module "reply_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   detail reply_log {
+radius01    |           filename = "/var/log/freeradius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/reply-detail-%Y%m%d"
+radius01    |           header = "%t"
+radius01    |           permissions = 384
+radius01    |           locking = no
+radius01    |           dates_as_integer = no
+radius01    |           escape_filenames = no
+radius01    |           log_packet_header = no
+radius01    |   }
+radius01    |   # Loading module "pre_proxy_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   detail pre_proxy_log {
+radius01    |           filename = "/var/log/freeradius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/pre-proxy-detail-%Y%m%d"
+radius01    |           header = "%t"
+radius01    |           permissions = 384
+radius01    |           locking = no
+radius01    |           dates_as_integer = no
+radius01    |           escape_filenames = no
+radius01    |           log_packet_header = no
+radius01    |   }
+radius01    |   # Loading module "post_proxy_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   detail post_proxy_log {
+radius01    |           filename = "/var/log/freeradius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/post-proxy-detail-%Y%m%d"
+radius01    |           header = "%t"
+radius01    |           permissions = 384
+radius01    |           locking = no
+radius01    |           dates_as_integer = no
+radius01    |           escape_filenames = no
+radius01    |           log_packet_header = no
+radius01    |   }
+radius01    |   # Loaded module rlm_unpack
+radius01    |   # Loading module "unpack" from file /etc/freeradius/mods-enabled/unpack
+radius01    |   # Loaded module rlm_radutmp
+radius01    |   # Loading module "radutmp" from file /etc/freeradius/mods-enabled/radutmp
+radius01    |   radutmp {
+radius01    |           filename = "/var/log/freeradius/radutmp"
+radius01    |           username = "%{User-Name}"
+radius01    |           case_sensitive = yes
+radius01    |           check_with_nas = yes
+radius01    |           permissions = 384
+radius01    |           caller_id = yes
+radius01    |   }
+radius01    |   # Loaded module rlm_attr_filter
+radius01    |   # Loading module "attr_filter.post-proxy" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    |   attr_filter attr_filter.post-proxy {
+radius01    |           filename = "/etc/freeradius/mods-config/attr_filter/post-proxy"
+radius01    |           key = "%{Realm}"
+radius01    |           relaxed = no
+radius01    |   }
+radius01    |   # Loading module "attr_filter.pre-proxy" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    |   attr_filter attr_filter.pre-proxy {
+radius01    |           filename = "/etc/freeradius/mods-config/attr_filter/pre-proxy"
+radius01    |           key = "%{Realm}"
+radius01    |           relaxed = no
+radius01    |   }
+radius01    |   # Loading module "attr_filter.access_reject" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    |   attr_filter attr_filter.access_reject {
+radius01    |           filename = "/etc/freeradius/mods-config/attr_filter/access_reject"
+radius01    |           key = "%{User-Name}"
+radius01    |           relaxed = no
+radius01    |   }
+radius01    |   # Loading module "attr_filter.access_challenge" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    |   attr_filter attr_filter.access_challenge {
+radius01    |           filename = "/etc/freeradius/mods-config/attr_filter/access_challenge"
+radius01    |           key = "%{User-Name}"
+radius01    |           relaxed = no
+radius01    |   }
+radius01    |   # Loading module "attr_filter.accounting_response" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    |   attr_filter attr_filter.accounting_response {
+radius01    |           filename = "/etc/freeradius/mods-config/attr_filter/accounting_response"
+radius01    |           key = "%{User-Name}"
+radius01    |           relaxed = no
+radius01    |   }
+radius01    |   # Loading module "attr_filter.coa" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    |   attr_filter attr_filter.coa {
+radius01    |           filename = "/etc/freeradius/mods-config/attr_filter/coa"
+radius01    |           key = "%{User-Name}"
+radius01    |           relaxed = no
+radius01    |   }
+radius01    |   # Loaded module rlm_pap
+radius01    |   # Loading module "pap" from file /etc/freeradius/mods-enabled/pap
+radius01    |   pap {
+radius01    |           normalise = yes
+radius01    |   }
+radius01    |   # Loaded module rlm_realm
+radius01    |   # Loading module "IPASS" from file /etc/freeradius/mods-enabled/realm
+radius01    |   realm IPASS {
+radius01    |           format = "prefix"
+radius01    |           delimiter = "/"
+radius01    |           ignore_default = no
+radius01    |           ignore_null = no
+radius01    |   }
+radius01    |   # Loading module "suffix" from file /etc/freeradius/mods-enabled/realm
+radius01    |   realm suffix {
+radius01    |           format = "suffix"
+radius01    |           delimiter = "@"
+radius01    |           ignore_default = no
+radius01    |           ignore_null = no
+radius01    |   }
+radius01    |   # Loading module "bangpath" from file /etc/freeradius/mods-enabled/realm
+radius01    |   realm bangpath {
+radius01    |           format = "prefix"
+radius01    |           delimiter = "!"
+radius01    |           ignore_default = no
+radius01    |           ignore_null = no
+radius01    |   }
+radius01    |   # Loading module "realmpercent" from file /etc/freeradius/mods-enabled/realm
+radius01    |   realm realmpercent {
+radius01    |           format = "suffix"
+radius01    |           delimiter = "%"
+radius01    |           ignore_default = no
+radius01    |           ignore_null = no
+radius01    |   }
+radius01    |   # Loading module "ntdomain" from file /etc/freeradius/mods-enabled/realm
+radius01    |   realm ntdomain {
+radius01    |           format = "prefix"
+radius01    |           delimiter = "\"
+radius01    |           ignore_default = no
+radius01    |           ignore_null = no
+radius01    |   }
+radius01    |   # Loaded module rlm_logintime
+radius01    |   # Loading module "logintime" from file /etc/freeradius/mods-enabled/logintime
+radius01    |   logintime {
+radius01    |           minimum_timeout = 60
+radius01    |   }
+radius01    |   # Loading module "sradutmp" from file /etc/freeradius/mods-enabled/sradutmp
+radius01    |   radutmp sradutmp {
+radius01    |           filename = "/var/log/freeradius/sradutmp"
+radius01    |           username = "%{User-Name}"
+radius01    |           case_sensitive = yes
+radius01    |           check_with_nas = yes
+radius01    |           permissions = 420
+radius01    |           caller_id = no
+radius01    |   }
+radius01    |   # Loaded module rlm_replicate
+radius01    |   # Loading module "replicate" from file /etc/freeradius/mods-enabled/replicate
+radius01    |   # Loaded module rlm_totp
+radius01    |   # Loading module "totp" from file /etc/freeradius/mods-enabled/totp
+radius01    |   totp {
+radius01    |           time_step = 30
+radius01    |           otp_length = 6
+radius01    |           lookback_steps = 1
+radius01    |           lookback_interval = 30
+radius01    |           lookforward_steps = 0
+radius01    |   }
+radius01    |   # Loaded module rlm_expr
+radius01    |   # Loading module "expr" from file /etc/freeradius/mods-enabled/expr
+radius01    |   expr {
+radius01    |           safe_characters = "@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_: /äéöüàâæçèéêëîïôœùûüaÿÄÉÖÜßÀÂÆÇÈÉÊËÎÏÔŒÙÛÜŸ"
+radius01    |   }
+radius01    |   # Loaded module rlm_dynamic_clients
+radius01    |   # Loading module "dynamic_clients" from file /etc/freeradius/mods-enabled/dynamic_clients
+radius01    |   # Loading module "exec" from file /etc/freeradius/mods-enabled/exec
+radius01    |   exec {
+radius01    |           wait = yes
+radius01    |           input_pairs = "request"
+radius01    |           shell_escape = yes
+radius01    |           timeout = 10
+radius01    |   }
+radius01    |   # Loading module "ntlm_auth" from file /etc/freeradius/mods-enabled/ntlm_auth
+radius01    |   exec ntlm_auth {
+radius01    |           wait = yes
+radius01    |           program = "/path/to/ntlm_auth --request-nt-key --domain=MYDOMAIN --username=%{mschap:User-Name} --password=%{User-Password}"
+radius01    |           shell_escape = yes
+radius01    |   }
+radius01    |   # Loaded module rlm_mschap
+radius01    |   # Loading module "mschap" from file /etc/freeradius/mods-enabled/mschap
+radius01    |   mschap {
+radius01    |           use_mppe = yes
+radius01    |           require_encryption = no
+radius01    |           require_strong = no
+radius01    |           with_ntdomain_hack = yes
+radius01    |    passchange {
+radius01    |    }
+radius01    |           allow_retry = yes
+radius01    |           winbind_retry_with_normalised_username = no
+radius01    |   }
+radius01    |   # Loaded module rlm_utf8
+radius01    |   # Loading module "utf8" from file /etc/freeradius/mods-enabled/utf8
+radius01    |   # Loading module "detail" from file /etc/freeradius/mods-enabled/detail
+radius01    |   detail {
+radius01    |           filename = "/var/log/freeradius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/detail-%Y%m%d"
+radius01    |           header = "%t"
+radius01    |           permissions = 384
+radius01    |           locking = no
+radius01    |           dates_as_integer = no
+radius01    |           escape_filenames = no
+radius01    |           log_packet_header = no
+radius01    |   }
+radius01    |   # Loaded module rlm_files
+radius01    |   # Loading module "files" from file /etc/freeradius/mods-enabled/files
+radius01    |   files {
+radius01    |           filename = "/etc/freeradius/mods-config/files/authorize"
+radius01    |           acctusersfile = "/etc/freeradius/mods-config/files/accounting"
+radius01    |           preproxy_usersfile = "/etc/freeradius/mods-config/files/pre-proxy"
+radius01    |   }
+radius01    |   # Loaded module rlm_passwd
+radius01    |   # Loading module "etc_passwd" from file /etc/freeradius/mods-enabled/passwd
+radius01    |   passwd etc_passwd {
+radius01    |           filename = "/etc/passwd"
+radius01    |           format = "*User-Name:Crypt-Password:"
+radius01    |           delimiter = ":"
+radius01    |           ignore_nislike = no
+radius01    |           ignore_empty = yes
+radius01    |           allow_multiple_keys = no
+radius01    |           hash_size = 100
+radius01    |   }
+radius01    |   # Loaded module rlm_expiration
+radius01    |   # Loading module "expiration" from file /etc/freeradius/mods-enabled/expiration
+radius01    |   # Loaded module rlm_linelog
+radius01    |   # Loading module "linelog" from file /etc/freeradius/mods-enabled/linelog
+radius01    |   linelog {
+radius01    |           filename = "/var/log/freeradius/linelog"
+radius01    |           escape_filenames = no
+radius01    |           syslog_severity = "info"
+radius01    |           permissions = 384
+radius01    |           format = "This is a log message for %{User-Name}"
+radius01    |           reference = "messages.%{%{reply:Packet-Type}:-default}"
+radius01    |   }
+radius01    |   # Loading module "log_accounting" from file /etc/freeradius/mods-enabled/linelog
+radius01    |   linelog log_accounting {
+radius01    |           filename = "/var/log/freeradius/linelog-accounting"
+radius01    |           escape_filenames = no
+radius01    |           syslog_severity = "info"
+radius01    |           permissions = 384
+radius01    |           format = ""
+radius01    |           reference = "Accounting-Request.%{%{Acct-Status-Type}:-unknown}"
+radius01    |   }
+radius01    |   # Loaded module rlm_unix
+radius01    |   # Loading module "unix" from file /etc/freeradius/mods-enabled/unix
+radius01    |   unix {
+radius01    |           radwtmp = "/var/log/freeradius/radwtmp"
+radius01    |   }
+radius01    | Creating attribute Unix-Group
+radius01    |   # Loaded module rlm_date
+radius01    |   # Loading module "date" from file /etc/freeradius/mods-enabled/date
+radius01    |   date {
+radius01    |           format = "%b %e %Y %H:%M:%S %Z"
+radius01    |           utc = no
+radius01    |   }
+radius01    |   # Loading module "wispr2date" from file /etc/freeradius/mods-enabled/date
+radius01    |   date wispr2date {
+radius01    |           format = "%Y-%m-%dT%H:%M:%S"
+radius01    |           utc = no
+radius01    |   }
+radius01    |   # Loaded module rlm_chap
+radius01    |   # Loading module "chap" from file /etc/freeradius/mods-enabled/chap
+radius01    |   instantiate {
+radius01    |   }
+radius01    |   # Instantiating module "reject" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "fail" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "ok" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "handled" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "invalid" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "userlock" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "notfound" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "noop" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "updated" from file /etc/freeradius/mods-enabled/always
+radius01    |   # Instantiating module "eap" from file /etc/freeradius/mods-enabled/eap
+radius01    |    # Linked to sub-module rlm_eap_md5
+radius01    |    # Linked to sub-module rlm_eap_gtc
+radius01    |    gtc {
+radius01    |           challenge = "Password: "
+radius01    |           auth_type = "PAP"
+radius01    |    }
+radius01    |    # Linked to sub-module rlm_eap_tls
+radius01    |    tls {
+radius01    |           tls = "tls-common"
+radius01    |    }
+radius01    |    tls-config tls-common {
+radius01    |           verify_depth = 0
+radius01    |           ca_path = "/etc/freeradius/certs"
+radius01    |           pem_file_type = yes
+radius01    |           private_key_file = "/etc/freeradius/certs/server.pem"
+radius01    |           certificate_file = "/etc/freeradius/certs/server.pem"
+radius01    |           ca_file = "/etc/freeradius/certs/ca.pem"
+radius01    |           private_key_password = <<< secret >>>
+radius01    |           fragment_size = 1024
+radius01    |           include_length = yes
+radius01    |           auto_chain = yes
+radius01    |           check_crl = no
+radius01    |           check_all_crl = no
+radius01    |           ca_path_reload_interval = 0
+radius01    |           cipher_list = "DEFAULT"
+radius01    |           cipher_server_preference = no
+radius01    |           reject_unknown_intermediate_ca = no
+radius01    |           ecdh_curve = ""
+radius01    |           tls_max_version = "1.2"
+radius01    |           tls_min_version = "1.2"
+radius01    |     cache {
+radius01    |           enable = no
+radius01    |           lifetime = 24
+radius01    |           max_entries = 255
+radius01    |     }
+radius01    |     verify {
+radius01    |           skip_if_ocsp_ok = no
+radius01    |     }
+radius01    |     ocsp {
+radius01    |           enable = no
+radius01    |           override_cert_url = yes
+radius01    |           url = "http://127.0.0.1/ocsp/"
+radius01    |           use_nonce = yes
+radius01    |           timeout = 0
+radius01    |           softfail = no
+radius01    |     }
+radius01    |    }
+radius01    |    # Linked to sub-module rlm_eap_ttls
+radius01    |    ttls {
+radius01    |           tls = "tls-common"
+radius01    |           default_eap_type = "md5"
+radius01    |           copy_request_to_tunnel = no
+radius01    |           use_tunneled_reply = no
+radius01    |           virtual_server = "inner-tunnel"
+radius01    |           include_length = yes
+radius01    |           require_client_cert = no
+radius01    |    }
+radius01    | tls: Using cached TLS configuration from previous invocation
+radius01    |    # Linked to sub-module rlm_eap_peap
+radius01    |    peap {
+radius01    |           tls = "tls-common"
+radius01    |           default_eap_type = "mschapv2"
+radius01    |           copy_request_to_tunnel = no
+radius01    |           use_tunneled_reply = no
+radius01    |           proxy_tunneled_request_as_eap = yes
+radius01    |           virtual_server = "inner-tunnel"
+radius01    |           soh = no
+radius01    |           require_client_cert = no
+radius01    |    }
+radius01    | tls: Using cached TLS configuration from previous invocation
+radius01    |    # Linked to sub-module rlm_eap_mschapv2
+radius01    |    mschapv2 {
+radius01    |           with_ntdomain_hack = no
+radius01    |           send_error = no
+radius01    |    }
+radius01    |   # Instantiating module "preprocess" from file /etc/freeradius/mods-enabled/preprocess
+radius01    | reading pairlist file /etc/freeradius/mods-config/preprocess/huntgroups
+radius01    | reading pairlist file /etc/freeradius/mods-config/preprocess/hints
+radius01    |   # Instantiating module "auth_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    | rlm_detail (auth_log): 'User-Password' suppressed, will not appear in detail output
+radius01    |   # Instantiating module "reply_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   # Instantiating module "pre_proxy_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   # Instantiating module "post_proxy_log" from file /etc/freeradius/mods-enabled/detail.log
+radius01    |   # Instantiating module "attr_filter.post-proxy" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    | reading pairlist file /etc/freeradius/mods-config/attr_filter/post-proxy
+radius01    |   # Instantiating module "attr_filter.pre-proxy" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    | reading pairlist file /etc/freeradius/mods-config/attr_filter/pre-proxy
+radius01    |   # Instantiating module "attr_filter.access_reject" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    | reading pairlist file /etc/freeradius/mods-config/attr_filter/access_reject
+radius01    |   # Instantiating module "attr_filter.access_challenge" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    | reading pairlist file /etc/freeradius/mods-config/attr_filter/access_challenge
+radius01    |   # Instantiating module "attr_filter.accounting_response" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    | reading pairlist file /etc/freeradius/mods-config/attr_filter/accounting_response
+radius01    |   # Instantiating module "attr_filter.coa" from file /etc/freeradius/mods-enabled/attr_filter
+radius01    | reading pairlist file /etc/freeradius/mods-config/attr_filter/coa
+radius01    |   # Instantiating module "pap" from file /etc/freeradius/mods-enabled/pap
+radius01    |   # Instantiating module "IPASS" from file /etc/freeradius/mods-enabled/realm
+radius01    |   # Instantiating module "suffix" from file /etc/freeradius/mods-enabled/realm
+radius01    |   # Instantiating module "bangpath" from file /etc/freeradius/mods-enabled/realm
+radius01    |   # Instantiating module "realmpercent" from file /etc/freeradius/mods-enabled/realm
+radius01    |   # Instantiating module "ntdomain" from file /etc/freeradius/mods-enabled/realm
+radius01    |   # Instantiating module "logintime" from file /etc/freeradius/mods-enabled/logintime
+radius01    |   # Instantiating module "totp" from file /etc/freeradius/mods-enabled/totp
+radius01    |   # Instantiating module "mschap" from file /etc/freeradius/mods-enabled/mschap
+radius01    | rlm_mschap (mschap): using internal authentication
+radius01    |   # Instantiating module "detail" from file /etc/freeradius/mods-enabled/detail
+radius01    |   # Instantiating module "files" from file /etc/freeradius/mods-enabled/files
+radius01    | reading pairlist file /etc/freeradius/mods-config/files/authorize
+radius01    | reading pairlist file /etc/freeradius/mods-config/files/accounting
+radius01    | reading pairlist file /etc/freeradius/mods-config/files/pre-proxy
+radius01    |   # Instantiating module "etc_passwd" from file /etc/freeradius/mods-enabled/passwd
+radius01    | rlm_passwd: nfields: 3 keyfield 0(User-Name) listable: no
+radius01    |   # Instantiating module "expiration" from file /etc/freeradius/mods-enabled/expiration
+radius01    |   # Instantiating module "linelog" from file /etc/freeradius/mods-enabled/linelog
+radius01    |   # Instantiating module "log_accounting" from file /etc/freeradius/mods-enabled/linelog
+radius01    |  } # modules
+radius01    | radiusd: #### Loading Virtual Servers ####
+radius01    | server { # from file /etc/freeradius/radiusd.conf
+radius01    | } # server
+radius01    | server default { # from file /etc/freeradius/sites-enabled/default
+radius01    |  # Loading authenticate {...}
+radius01    | Compiling Auth-Type PAP for attr Auth-Type
+radius01    | Compiling Auth-Type CHAP for attr Auth-Type
+radius01    | Compiling Auth-Type MS-CHAP for attr Auth-Type
+radius01    |  # Loading authorize {...}
+radius01    | Ignoring "sql" (see raddb/mods-available/README.rst)
+radius01    | Ignoring "ldap" (see raddb/mods-available/README.rst)
+radius01    | Compiling Autz-Type New-TLS-Connection for attr Autz-Type
+radius01    |  # Loading preacct {...}
+radius01    |  # Loading accounting {...}
+radius01    |  # Loading post-proxy {...}
+radius01    |  # Loading post-auth {...}
+radius01    | Compiling Post-Auth-Type REJECT for attr Post-Auth-Type
+radius01    | Compiling Post-Auth-Type Challenge for attr Post-Auth-Type
+radius01    | Compiling Post-Auth-Type Client-Lost for attr Post-Auth-Type
+radius01    | } # server default
+radius01    | server inner-tunnel { # from file /etc/freeradius/sites-enabled/inner-tunnel
+radius01    |  # Loading authenticate {...}
+radius01    | Compiling Auth-Type PAP for attr Auth-Type
+radius01    | Compiling Auth-Type CHAP for attr Auth-Type
+radius01    | Compiling Auth-Type MS-CHAP for attr Auth-Type
+radius01    |  # Loading authorize {...}
+radius01    |  # Loading session {...}
+radius01    |  # Loading post-proxy {...}
+radius01    |  # Loading post-auth {...}
+radius01    |  # Skipping contents of 'if' as it is always 'false' -- /etc/freeradius/sites-enabled/inner-tunnel:366
+radius01    | Compiling Post-Auth-Type REJECT for attr Post-Auth-Type
+radius01    | } # server inner-tunnel
+radius01    | radiusd: #### Opening IP addresses and Ports ####
+radius01    | listen {
+radius01    |           type = "auth"
+radius01    |           ipaddr = *
+radius01    |           port = 0
+radius01    |    limit {
+radius01    |           max_connections = 16
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 30
+radius01    |    }
+radius01    | }
+radius01    | listen {
+radius01    |           type = "acct"
+radius01    |           ipaddr = *
+radius01    |           port = 0
+radius01    |    limit {
+radius01    |           max_connections = 16
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 30
+radius01    |    }
+radius01    | }
+radius01    | listen {
+radius01    |           type = "auth"
+radius01    |           ipv6addr = ::
+radius01    |           port = 0
+radius01    |    limit {
+radius01    |           max_connections = 16
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 30
+radius01    |    }
+radius01    | }
+radius01    | listen {
+radius01    |           type = "acct"
+radius01    |           ipv6addr = ::
+radius01    |           port = 0
+radius01    |    limit {
+radius01    |           max_connections = 16
+radius01    |           lifetime = 0
+radius01    |           idle_timeout = 30
+radius01    |    }
+radius01    | }
+radius01    | listen {
+radius01    |           type = "auth"
+radius01    |           ipaddr = 127.0.0.1
+radius01    |           port = 18120
+radius01    | }
+radius01    | Listening on auth address * port 1812 bound to server default
+radius01    | Listening on acct address * port 1813 bound to server default
+radius01    | Listening on auth address :: port 1812 bound to server default
+radius01    | Listening on acct address :: port 1813 bound to server default
+radius01    | Listening on auth address 127.0.0.1 port 18120 bound to server inner-tunnel
+radius01    | Listening on proxy address * port 37872
+radius01    | Listening on proxy address :: port 38456
+radius01    | Ready to process requests
