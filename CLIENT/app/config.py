@@ -47,6 +47,10 @@ class QkdConfig:
     info_json: str
     peer_sae_id: str       # slave SAE this client requests keys for (radius01)
     sae_id: str            # optional override; usually derived from info.json
+    # Data-plane peer (the server this client will exchange a QKD-derived
+    # session key with on every TLS connection). For client01 this is
+    # server01's SAE UUID. Distinct from peer_sae_id (radius01, auth-plane).
+    data_peer_sae_id: str
 
 
 @dataclass(frozen=True)
@@ -87,6 +91,7 @@ def load_config() -> AppConfig:
             info_json=_env("QKD_INFO_JSON", "/etc/qkd/sae-client01.info.json"),
             peer_sae_id=_env("QKD_PEER_SAE_ID", ""),
             sae_id=_env("QKD_SAE_ID", ""),
+            data_peer_sae_id=_env("QKD_DATA_PEER_SAE_ID", ""),
         ),
         server=ServerConfig(
             host=_env("SERVER_HOST", "server01"),

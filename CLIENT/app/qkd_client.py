@@ -83,13 +83,19 @@ def enc_key(cfg: QkdConfig, peer_sae_id: str) -> QkdKey:
     if not peer_sae_id:
         raise QkdError("peer SAE ID is empty (set QKD_PEER_SAE_ID in env)")
     url = f"{cfg.kme_url.rstrip('/')}/api/v1/keys/{peer_sae_id}/enc_keys"
+    logger.info("[TRACE enc_key] REQ  master=self  slave=%s  url=%s",
+                peer_sae_id, url)
     body = _get(cfg, url)
+    logger.info("[TRACE enc_key] RESP body=%s", body)
     try:
         first = body["keys"][0]
         rec = QkdKey(key_id=first["key_ID"], key=first["key"])
     except (KeyError, IndexError, TypeError) as e:
         raise QkdError(f"unexpected enc_keys body: {body!r}") from e
-    logger.info("enc_keys OK  key_id=%s  key_len=%d", rec.key_id, len(rec.key))
+    logger.info(
+        "[TRACE enc_key] OK   key_id=%s  key_b64=%s  (b64_len=%d)",
+        rec.key_id, rec.key, len(rec.key),
+    )
     return rec
 
 
@@ -98,10 +104,18 @@ def dec_key(cfg: QkdConfig, master_sae_id: str, key_id: str) -> QkdKey:
         f"{cfg.kme_url.rstrip('/')}/api/v1/keys/{master_sae_id}"
         f"/dec_keys?key_ID={key_id}"
     )
+    logger.info("[TRACE dec_key] REQ  master=%s  slave=self  key_id=%s  url=%s",
+                master_sae_id, key_id, url)
     body = _get(cfg, url)
+    logger.info("[TRACE dec_key] RESP body=%s", body)
     try:
         first = body["keys"][0]
-        return QkdKey(key_id=first["key_ID"], key=first["key"])
+        rec = QkdKey(key_id=first["key_ID"], key=first["key"])
     except (KeyError, IndexError, TypeError) as e:
         raise QkdError(f"unexpected dec_keys body: {body!r}") from e
+    logger.info(
+        "[TRACE dec_key] OK   key_id=%s  key_b64=%s  (b64_len=%d)",
+        rec.key_id, rec.key, len(rec.key),
+    )
+    return rec
 

@@ -58,7 +58,7 @@ def run() -> int:
 
     # ---- 3) serve forever -------------------------------------------------
     try:
-        serve_forever(cfg.listener)
+        serve_forever(cfg.listener, cfg.qkd)
     except KeyboardInterrupt:
         log.info("Shutdown requested, exiting.")
         return 0

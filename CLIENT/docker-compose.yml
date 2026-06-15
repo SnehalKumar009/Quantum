@@ -32,6 +32,12 @@ services:
       # radius01's SAE_ID (UUID). Same value as in SERVER/docker-compose.yml.
       #   jq -r .sae_id /home/agenticai/SNEHAL_POC/sae-radius01/sae-radius01.info.json
       QKD_PEER_SAE_ID:    "62391013-687d-11f1-b7ff-525400b8fb7b"
+      # Data-plane peer (server01's SAE UUID). On every TLS connection
+      # client01 calls enc_keys with this SAE as the slave, sends
+      # "<master_sae_id>|<key_id>" as the QC frame, and server01
+      # dec_keys the same key. Read from:
+      #   jq -r .sae_id /home/agenticai/SNEHAL_POC/sae-server01/sae-server01.info.json
+      QKD_DATA_PEER_SAE_ID: "4605150d-687e-11f1-b7ff-525400b8fb7b"
       QKD_CERT:           "/etc/qkd/sae-client01.crt.pem"
       QKD_KEY:            "/etc/qkd/sae-client01.key.pem"
       QKD_CACERT:         "/etc/qkd/sae-client01.trusted_cas.pem"

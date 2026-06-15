@@ -33,6 +33,20 @@ services:
       # master (server01) on its side. Read it from the bundle's info.json:
       #   jq -r .sae_id /home/agenticai/SNEHAL_POC/sae-radius01/sae-radius01.info.json
       QKD_PEER_SAE_ID:    "62391013-687d-11f1-b7ff-525400b8fb7b"
+      # Data-plane peer pin (OPTIONAL on the server side).
+      #
+      # The server learns the connecting client's SAE UUID dynamically from
+      # the QC frame ("<client_sae_id>|<key_id>") and uses it as the slave
+      # for its own enc_keys call. So this variable is NOT required for the
+      # flow to work -- leave it empty to accept whichever SAE dials in.
+      #
+      # If set, it acts as a strict allow-list: any TLS connection whose QC
+      # frame advertises a different client SAE will be rejected. Useful in
+      # production to lock the server to one known supplicant.
+      #
+      # Look up client01's SAE UUID with:
+      #   jq -r .sae_id /home/agenticai/SNEHAL_POC/sae-client01/sae-client01.info.json
+      QKD_DATA_PEER_SAE_ID: "40a45fc8-687e-11f1-b7ff-525400b8fb7b"
       QKD_CERT:           "/etc/qkd/sae-server01.crt.pem"
       QKD_KEY:            "/etc/qkd/sae-server01.key.pem"
       QKD_CACERT:         "/etc/qkd/sae-server01.trusted_cas.pem"

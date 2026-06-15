@@ -24,7 +24,6 @@ from .crypto_session import EncryptedMessage, decrypt, derive_session_key, encry
 from .framing import recv_frame, send_frame
 from .nas_auth import NasAuthError, authenticate
 from .qkd_client import QkdError, enc_key, own_sae_id
-from .quantum import generate_quantum_random
 from .tls_client import exchange_quantum, open_tls_connection
 
 
@@ -80,14 +79,15 @@ def run() -> int:
         log.error("NAS auth failed: %s", e)
         return 2
 
-    # --- Step 3: generate QC ----------------------------------------------
-    qc = generate_quantum_random()
-    log.info("Generated QC (%d bytes)", len(qc))
+    # --- Step 3: QC is now derived from a QKD key (see exchange_quantum) --
+    # No local QRNG anymore; both QC and QS are real QKD-shared keys.
 
     # --- Steps 4-6: TLS + quantum exchange + encrypted message ------------
     with open_tls_connection(cfg.server) as tls:
-        qs = exchange_quantum(tls, qc)
-        log.info("Received QS (%d bytes)", len(qs))
+        qc, qs = exchange_quantum(tls, cfg.qkd)
+        log.info(
+            "Both QKD halves in hand: QC=%d bytes  QS=%d bytes", len(qc), len(qs),
+        )
 
         session_key = derive_session_key(qc, qs)
         log.info("Derived SessionKey (sha256, %d bytes) - first 8 bytes: %s",
