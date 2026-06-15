@@ -12,10 +12,24 @@ services:
       # to fetch the canonical Key for a given KeyId and compare against the VSA
       # sent by the NAS. Inherited by rlm_exec children at auth time.
       QCONNECT_URL: http://qconnect:9000
+      # ---- Real qConnect (ETSI GS QKD 014) over mTLS ------------------------
+      # SAE registered on qConnect VM as alias "sae-radius01".
+      QKD_KME_URL:    "https://192.168.10.233"
+      QKD_SAE_ALIAS:  "sae-radius01"
+      QKD_CERT:       "/etc/qkd/sae-radius01.crt.pem"
+      QKD_KEY:        "/etc/qkd/sae-radius01.key.pem"
+      QKD_CACERT:     "/etc/qkd/sae-radius01.trusted_cas.pem"
+      QKD_INFO_JSON:  "/etc/qkd/sae-radius01.info.json"
     ports:
       # Expose to the host for local testing with radtest / radclient.
       - "1812:1812/udp"
       - "1813:1813/udp"
+    volumes:
+      # Per-SAE bundle generated on qConnect:
+      #   etsi-proxy-cli tsf-layer key-retriever etsi014 create \
+      #     --key-retriever-alias sae-radius01 --pem --pem-dir saes
+      # then scp'd to ${SAE_BUNDLE_DIR}/sae-radius01 on this host.
+      - ${SAE_BUNDLE_DIR:-/home/agenticai/SNEHAL_POC}/sae-radius01:/etc/qkd:ro
     networks:
       - quantum-net
 

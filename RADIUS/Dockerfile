@@ -48,6 +48,12 @@ COPY scripts/quantum-key-check.sh /usr/local/bin/quantum-key-check
 RUN sed -i 's/\r$//' /usr/local/bin/quantum-key-check \
  && chmod +x /usr/local/bin/quantum-key-check
 
+# Real qConnect (ETSI 014) status probe over mTLS. Invoked from
+# quantum-key-check as a best-effort trace step.
+COPY scripts/qkd-status.sh /usr/local/bin/qkd-status
+RUN sed -i 's/\r$//' /usr/local/bin/qkd-status \
+ && chmod +x /usr/local/bin/qkd-status
+
 COPY raddb/policy.d/quantum-key-check /etc/raddb/policy.d/quantum-key-check
 RUN sed -i 's/\r$//' /etc/raddb/policy.d/quantum-key-check
 

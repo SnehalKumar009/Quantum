@@ -42,6 +42,16 @@ _log "------ new invocation ------"
 _log "INPUT   KeyId='${KEY_ID}'  SuppliedKey='${SUPPLIED_KEY}'  (len=${#SUPPLIED_KEY})"
 _log "TARGET  ${QCONNECT_URL}/keys/${KEY_ID}"
 
+# ---------------------------------------------------------------------------
+# Best-effort trace probe against the REAL qConnect KME (ETSI GS QKD 014).
+# Never affects the auth verdict — purely diagnostic. Writes to
+# /tmp/qkd-status.log and to FreeRADIUS -X stderr so you can see it inline.
+# ---------------------------------------------------------------------------
+if [ -x /usr/local/bin/qkd-status ] && [ -n "${QKD_KME_URL:-}" ]; then
+    _log "PROBE   /usr/local/bin/qkd-status (target=${QKD_KME_URL})"
+    /usr/local/bin/qkd-status >/dev/null 2>>"$LOGFILE" || true
+fi
+
 if [ -z "$KEY_ID" ] || [ -z "$SUPPLIED_KEY" ]; then
     _log "RESULT  FAIL:missing-args"
     echo "FAIL:missing-args"

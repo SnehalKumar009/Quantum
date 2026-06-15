@@ -17,6 +17,18 @@ services:
       NAS_SHARED_TOKEN: lab-nas-token
       # ---- QConnect (registration on boot) ----------------------------------
       QCONNECT_URL: http://qconnect:9000
+      # ---- Real qConnect (ETSI GS QKD 014) over mTLS ------------------------
+      # SAE registered on qConnect VM as alias "sae-client01".
+      # Peer SAE is "sae-server01" — fill its UUID into QKD_PEER_SAE_ID once
+      # you have it (cat /etc/qkd/.. on server01 host, or check info.json).
+      QKD_KME_URL:        "https://192.168.10.233"
+      QKD_SAE_ALIAS:      "sae-client01"
+      QKD_PEER_SAE_ALIAS: "sae-server01"
+      QKD_PEER_SAE_ID:    ""    # e.g. "40a45fc8-687e-11f1-b7ff-525400b8fb7b"
+      QKD_CERT:           "/etc/qkd/sae-client01.crt.pem"
+      QKD_KEY:            "/etc/qkd/sae-client01.key.pem"
+      QKD_CACERT:         "/etc/qkd/sae-client01.trusted_cas.pem"
+      QKD_INFO_JSON:      "/etc/qkd/sae-client01.info.json"
       # ---- App server -------------------------------------------------------
       SERVER_HOST: server01
       SERVER_PORT: "8443"
@@ -29,6 +41,11 @@ services:
       NAS_HTTP_TIMEOUT: "120"
       # ---- Logging ----------------------------------------------------------
       LOG_LEVEL: INFO
+    volumes:
+      # Per-SAE bundle generated on qConnect:
+      #   etsi-proxy-cli tsf-layer key-retriever etsi014 create \
+      #     --key-retriever-alias sae-client01 --pem --pem-dir saes
+      - ${SAE_BUNDLE_DIR:-/home/agenticai/SNEHAL_POC}/sae-client01:/etc/qkd:ro
     networks:
       - quantum-net
 
