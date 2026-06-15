@@ -19,12 +19,19 @@ services:
       QCONNECT_URL: http://qconnect:9000
       # ---- Real qConnect (ETSI GS QKD 014) over mTLS ------------------------
       # SAE registered on qConnect VM as alias "sae-client01".
-      # Peer SAE is "sae-server01" — fill its UUID into QKD_PEER_SAE_ID once
-      # you have it (cat /etc/qkd/.. on server01 host, or check info.json).
+      # On startup client01 calls enc_keys against the KME, asking for a key
+      # destined for the radius01 SAE (radius01 is the verifier/slave). The
+      # resulting key_id + this client's own SAE_ID then ride to RADIUS as
+      # the Quantum-Key-Id and Quantum-Master-SAE-ID VSAs.
+      #
+      # (Server01 ↔ client01 data-plane QKD is a separate future concern —
+      # right now only the auth flow uses qConnect.)
       QKD_KME_URL:        "https://192.168.10.233:50555"
       QKD_SAE_ALIAS:      "sae-client01"
-      QKD_PEER_SAE_ALIAS: "sae-server01"
-      QKD_PEER_SAE_ID:    ""    # e.g. "40a45fc8-687e-11f1-b7ff-525400b8fb7b"
+      QKD_PEER_SAE_ALIAS: "sae-radius01"
+      # radius01's SAE_ID (UUID). Same value as in SERVER/docker-compose.yml.
+      #   jq -r .sae_id /home/agenticai/SNEHAL_POC/sae-radius01/sae-radius01.info.json
+      QKD_PEER_SAE_ID:    "62391013-687d-11f1-b7ff-525400b8fb7b"
       QKD_CERT:           "/etc/qkd/sae-client01.crt.pem"
       QKD_KEY:            "/etc/qkd/sae-client01.key.pem"
       QKD_CACERT:         "/etc/qkd/sae-client01.trusted_cas.pem"

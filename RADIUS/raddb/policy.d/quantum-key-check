@@ -12,12 +12,13 @@
 #       * Successful retrieval -> "OK"  (we don't compare anything)
 #       * Any failure          -> "FAIL:<reason>"
 #
-# Scope: only enforced for User-Name == "server01" right now. The legacy users
-# (client01, testuser, radius-ui smoke tests) pass through unchanged.
-# Extend this list once client01 is migrated to the same flow.
+# Scope: enforced for both server01 and client01 — each calls enc_keys at
+# its own boot/run and ships {key_id, master_sae_id} via VSAs; this policy
+# verifies by *fetching* the key from qConnect over mTLS. Legacy users
+# (testuser, radius-ui smoke tests) still pass through unchanged.
 # =============================================================================
 quantum_key_check {
-    if (&User-Name == "server01") {
+    if (&User-Name == "server01" || &User-Name == "client01") {
         if (!&Quantum-Key-Id || !&Quantum-Master-SAE-ID) {
             update reply {
                 Reply-Message := "Quantum VSAs missing (need Key-Id + Master-SAE-ID)"
